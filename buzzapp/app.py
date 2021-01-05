@@ -8,7 +8,7 @@ from model.game import BuzzGame, Host, Player, Stopwatch
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
-startup = True
+first_request = True
 
 game: BuzzGame = BuzzGame()
 sw: Stopwatch = Stopwatch()
@@ -21,18 +21,24 @@ def send_player_update():
 
 def send_host_update():
     hostjson = host_to_json(game.host)
-    print(hostjson)
     socketio.emit('host_update', hostjson)
+
+
+# Force update of js files
+@app.after_request
+def add_header(response):
+    response.headers['Cache-Control'] = 'no-cache, must-revalidate'
+    return response
 
 
 # ----- APP ROUTES -----
 
 @app.route('/')
-def main():
-    global startup
-    if startup:
+def index():
+    global first_request
+    if first_request:
         session.clear()
-        startup = False
+        first_request = False
     errors = session.get('index_errors')
     return render_template('index.html', errors=errors)
 
@@ -76,7 +82,6 @@ def game_joined(data):
 
     player = Player(playername)
     game.add_player(player)
-
     send_player_update()
 
 
@@ -106,7 +111,6 @@ def game_host_left():
     assert game.has_host(), "non-existent host has left"
 
     game.remove_host()
-    print("HAS LEFT")
     send_host_update()
     send_player_update()
 
@@ -123,6 +127,13 @@ def host_start_stopwatch(data):
         sw.reset()
 
     socketio.emit('stopwatch_action', action)
+
+
+@socketio.on('host_kick_player')
+def host_kick_player(data):
+    playername = data['playername']
+    socketio.emit('player_kicked', playername)
+    # Model change will happen upon the disconnect coming from the kicked user
 
 
 @socketio.on('buzzer_clicked')

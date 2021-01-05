@@ -84,7 +84,7 @@ class Stopwatch():
             self._elapsed_intervals = []
 
     def elapsed(self):
-        if len(self._elapsed_intervals) == 0:
+        if len(self._elapsed_intervals) == 0 and not self._running:
             return None
 
         total = sum(self._elapsed_intervals)

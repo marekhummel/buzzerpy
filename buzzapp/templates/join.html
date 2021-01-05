@@ -9,8 +9,8 @@
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"
         integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
-    <script src="{{url_for('static', filename='scripts.js')}}"></script>
-    <script src="{{url_for('static', filename='stopwatch.js')}}"></script>
+    <script src="{{url_for('static', filename='scripts.js')}}?"></script>
+    <script src="{{url_for('static', filename='stopwatch.js')}}?"></script>
     <script type="text/javascript" charset="utf-8">       
         var socket = io();
         var buzzer_clicked = false;
@@ -29,7 +29,7 @@
 
         // Game update
         socket.on('player_update', function (players) {
-            var new_ul = create_player_list(players, "playerlist");
+            var new_ul = create_player_list(players, "playerlist", false);
             document.getElementById("playerlist").replaceWith(new_ul);
         }); 
 
@@ -61,6 +61,12 @@
             buzzer_clicked = false;
             document.getElementById("buzzer").setAttribute("fill", "red");
         });
+
+        socket.on('player_kicked', function (kicked) {
+            if (kicked == name)
+                window.location.href = '/';
+        });
+
 
         socket.on('stopwatch_action', function (action) {
             switch (action) {
