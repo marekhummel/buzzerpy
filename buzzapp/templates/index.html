@@ -12,16 +12,13 @@
 
 <body>
     <p>Welcome!</p>
-    <form action="/host">
-        <input type="submit" value="Host new game">
-    </form>
+    
+    <form action="">
+        <label for="name">Name:</label><br>
+        <input type="text" id="name" name="name" value="">
 
-    <form action="/join">
-        <label for="gameid">Game ID:</label><br>
-        <input type="text" id="gameid" name="gameid" value="123456">
-        <label for="playername">Name:</label><br>
-        <input type="text" id="playername" name="playername" value="Howdy">
-        <input type="submit" value="Connect">
+        <button type="submit" formaction="/join">Join</button>
+        <button type="submit" formaction="/host">Host</button>
     </form>
 
 

@@ -13,40 +13,51 @@
     <script src="{{url_for('static', filename='stopwatch.js')}}"></script>
     <script type="text/javascript" charset="utf-8">
         var socket = io();
-        var gameid = {{ gameid }};
-        socket.on('connect', function () {
-            socket.emit('join_game_host', { gameid: gameid });
-        });
+        var name = "{{ hostname }}";
 
-        socket.on('game_update', function (players) {
+        // Connect / disconnect host
+        window.onload = function() {
+            socket.emit('game_hosted', { hostname: name });
+        };
+
+        window.onbeforeunload = function () {
+            socket.emit('game_host_left');
+        };
+
+        // Game update
+        socket.on('player_update', function (players) {
             var new_ul = create_player_list(players, "playerlist");
             document.getElementById("playerlist").replaceWith(new_ul);
         });
 
+        socket.on('disconnect', function () {
+            window.location.href = '/';
+        });
 
+        // Locals
         function host_start_stopwatch() {
-            socket.emit('host_stopwatch_action', { gameid: gameid, action: 'start'});
+            socket.emit('host_stopwatch_action', { action: 'start'});
             stopwatch_start();
         };
 
         function host_stop_stopwatch() {
-            socket.emit('host_stopwatch_action', { gameid: gameid, action: 'stop'});
+            socket.emit('host_stopwatch_action', { action: 'stop'});
             stopwatch_stop();
         };
 
         function host_reset_stopwatch() {
-            socket.emit('host_stopwatch_action', { gameid: gameid, action: 'reset'});
+            socket.emit('host_stopwatch_action', { action: 'reset'});
             stopwatch_reset();
         };
 
         function reset_buzzers() {
-            socket.emit('reset_buzzers', { gameid: gameid });
+            socket.emit('host_buzzer_reset');
         };
     </script>
 </head>
 
 <body>
-    <p>Hosted game with id {{ gameid }}</p>
+    <p>Hosted game as {{ hostname }}</p>
     <ul id="playerlist"></ul>
     <div>
         <span id="stopwatch">00:00:00</span>
@@ -56,6 +67,10 @@
     </div>
     <div>
         <button id="buzzer_reset" onclick="reset_buzzers()">Reset Buzzers</button>
+    </div>
+
+    <div>
+        <button id="buzzer_reset" onclick="window.location.href = '/'">Leave</button>
     </div>
 </body>
 

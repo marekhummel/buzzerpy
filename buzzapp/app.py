@@ -1,78 +1,119 @@
-from typing import Dict
+from flask import Flask, render_template, request, session
+from flask_socketio import SocketIO, emit
+from werkzeug.utils import redirect
 
-from flask import Flask, render_template, request
-from flask_socketio import SocketIO, join_room, leave_room
-
-from helper import playerlist_to_json
-from model.game import BuzzGame, Player, Stopwatch
-
+from helper import host_to_json, playerlist_to_json
+from model.game import BuzzGame, Host, Player, Stopwatch
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
+startup = True
 
-hosted_games: Dict[int, BuzzGame] = {}
+game: BuzzGame = BuzzGame()
 sw: Stopwatch = Stopwatch()
 
 
+def send_player_update():
+    playerjson = playerlist_to_json(game.players)
+    socketio.emit('player_update', playerjson)
+
+
+def send_host_update():
+    hostjson = host_to_json(game.host)
+    print(hostjson)
+    socketio.emit('host_update', hostjson)
+
+
+# ----- APP ROUTES -----
+
 @app.route('/')
 def main():
-    return render_template('index.html')
+    global startup
+    if startup:
+        session.clear()
+        startup = False
+    errors = session.get('index_errors')
+    return render_template('index.html', errors=errors)
 
 
 @app.route('/host')
 def host():
-    bg = BuzzGame(list(hosted_games.keys()))
-    hosted_games[bg.id] = bg
-    return render_template('host.html', gameid=bg.id)
+    if game.has_host():
+        session['index_errors'] = 'GAME ALREADY HOSTED'
+        return redirect('/')
+
+    hostname = request.args.get('name')
+    session.pop('index_errors', None)
+    return render_template('host.html', hostname=hostname)
 
 
 @app.route('/join')
 def join():
-    gameid = int(request.args.get('gameid'))
-    playername = request.args.get('playername')
+    playername = request.args.get('name')
 
-    if gameid not in hosted_games.keys():
-        return render_template('index.html', errors="GAME NOT EXISTENT")
+    if not game.has_host():
+        session['index_errors'] = 'GAME NOT HOSTED YET'
+        return redirect('/')
 
-    if hosted_games[gameid].get_player(playername):
-        return render_template('index.html', errors="NAME ALREADY CHOSEN")
+    if game.get_player(playername):
+        session['index_errors'] = 'NAME ALREADY CHOSEN'
+        return redirect('/')
 
-    return render_template('join.html', gameid=gameid, playername=playername)
+    session.pop('index_errors', None)
+    return render_template('join.html', hostname=game.host.name, playername=playername)
 
 
-@socketio.on('join_game')
-def join_game(data):
-    gameid = data['gameid']
+# ----- SOCKET COMMUNICATION -----
+
+@socketio.on('game_joined')
+def game_joined(data):
     playername = data['playername']
 
-    if gameid not in hosted_games.keys():
+    if not game.has_host() or game.get_player(playername):
+        emit('disconnect')
         return
 
     player = Player(playername)
-    game = hosted_games[gameid]
     game.add_player(player)
 
-    join_room(gameid)
-    playerjson = playerlist_to_json(game.players)
-    socketio.emit('game_update', playerjson, room=gameid)
+    send_player_update()
 
 
-@socketio.on('join_game_host')
-def join_game_host(data):
-    gameid = data['gameid']
-    if gameid not in hosted_games.keys():
+@socketio.on('game_left')
+def game_left(data):
+    playername = data['playername']
+    game.remove_player(playername)
+    send_player_update()
+
+
+@socketio.on('game_hosted')
+def game_hosted(data):
+    if game.has_host():
+        emit('disconnect')
         return
 
-    join_room(gameid)
+    hostname = data['hostname']
+    host = Host(hostname)
+    game.set_host(host)
+
+    send_host_update()
+    send_player_update()
+
+
+@socketio.on('game_host_left')
+def game_host_left():
+    assert game.has_host(), "non-existent host has left"
+
+    game.remove_host()
+    print("HAS LEFT")
+    send_host_update()
+    send_player_update()
 
 
 @socketio.on('host_stopwatch_action')
 def host_start_stopwatch(data):
-    gameid = data['gameid']
     action = data['action']
-    if gameid not in hosted_games.keys():
-        return
 
     if action == 'start':
         sw.start()
@@ -81,39 +122,30 @@ def host_start_stopwatch(data):
     elif action == 'reset':
         sw.reset()
 
-    socketio.emit('stopwatch_action', action, room=gameid)
+    socketio.emit('stopwatch_action', action)
 
 
-@socketio.on('click_buzzer')
+@socketio.on('buzzer_clicked')
 def buzzer_clicked(data):
-    gameid = data['gameid']
     playername = data['playername']
-
-    game = hosted_games[gameid]
     player = game.get_player(playername)
 
     if not player:
         raise LookupError('Player gone')
     player.buzz(sw.elapsed())
 
-    playerjson = playerlist_to_json(game.players)
-    socketio.emit('game_update', playerjson, room=gameid)
+    send_player_update()
 
 
-@socketio.on('reset_buzzers') 
-def buzzer_clicked(data):
-    gameid = data['gameid']
-    if gameid not in hosted_games.keys():
-        return
-
-    game = hosted_games[gameid]
+@socketio.on('host_buzzer_reset')
+def buzzer_reset():
     for p in game.players:
         p.reset()
 
-    playerjson = playerlist_to_json(game.players)
-    socketio.emit('game_update', playerjson, room=gameid)
-    socketio.emit('buzzer_reset', room=gameid)
+    send_player_update()
+    socketio.emit('player_buzzer_reset')
 
 
 if __name__ == "__main__":
     socketio.run(app, debug=True)
+

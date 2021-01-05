@@ -14,20 +14,52 @@
     <script type="text/javascript" charset="utf-8">       
         var socket = io();
         var buzzer_clicked = false;
+        var name = "{{ playername }}";
+        var closing_timer;
 
-        // Register new player
-        socket.on('connect', function () {
-            socket.emit('join_game', { gameid: {{ gameid }}, playername: "{{ playername }}"});
-        });
+        // Connect and disconnect player
+        window.onload = function () {
+            socket.emit('game_joined', { playername: name });
+        };
+
+        window.onbeforeunload = function () {
+            socket.emit('game_left', { playername: name });
+        };
+
 
         // Game update
-        socket.on('game_update', function (players) {
+        socket.on('player_update', function (players) {
             var new_ul = create_player_list(players, "playerlist");
             document.getElementById("playerlist").replaceWith(new_ul);
         }); 
 
-        socket.on('buzzer_reset', function () {
+        socket.on('host_update', function (host) {
+            if (host === undefined) {
+                var closing_counter = 30;
+                closing_timer = setInterval(function () {
+                    closing_counter--;
+                    document.getElementById("hostname").innerText = `Your host has left, game will be closed in ${closing_counter}secs`;
+                    if (closing_counter == 0) {
+                        clearInterval(closing_timer);
+                        window.location.href = '/';
+                    }
+                }, 1000);
+            }
+            else {
+                clearInterval(closing_timer);
+                document.getElementById("hostname").innerText = 'Hosted by "' + host.name + '"';
+            }
+
+        });
+
+        socket.on('disconnect', function () {
+            window.location.href = '/';
+        });
+
+        // Game features
+        socket.on('player_buzzer_reset', function () {
             buzzer_clicked = false;
+            document.getElementById("buzzer").setAttribute("fill", "red");
         });
 
         socket.on('stopwatch_action', function (action) {
@@ -44,29 +76,33 @@
             };
         })
 
+        // Locals
+        function send_click() {
+            if (!buzzer_clicked) {
+                socket.emit('buzzer_clicked', { playername: name });
+                buzzer_clicked = true;
+                document.getElementById("buzzer").setAttribute("fill", "green");
+            };
+        };
     </script>
 </head>
 
 <body>
-    <p>Joined game {{ gameid }} as "{{ playername }}"</p>
-    <svg height="200" width="200">
-        <script type="text/javascript" charset="utf-8">
-            
+    <span>Joined game as </span><span>"{{ playername }}"</span><br>
+    <span id="hostname">Hosted by "{{ hostname }}"</span>
+    <div>
+        <svg height="200" width="200">
+            <circle id="buzzer" onclick='send_click()' cx="100" cy="100" r="90" stroke="black" stroke-width="3" fill="red" />
+        </svg>
+    </div>
 
-            function send_click() {
-                if (!buzzer_clicked) {
-                    var socket = io();
-                    socket.emit('click_buzzer', { gameid: {{ gameid }}, playername: "{{ playername }}" });
-                    // stopwatch_stop();
-                    buzzer_clicked = true;
-                };
-            };
-        </script>
-        <circle onclick='send_click()' cx="100" cy="100" r="100" stroke="black" stroke-width="3" fill="red" />
-    </svg>
     <ul id="playerlist"></ul>
     <div>
         <span id="stopwatch">00:00:00</span>
+    </div>
+
+    <div>
+        <button id="buzzer_reset" onclick="window.location.href = '/'">Leave</button>
     </div>
 </body>
 

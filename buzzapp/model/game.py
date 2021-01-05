@@ -1,6 +1,12 @@
-from random import randint
 from time import time
 from typing import List
+
+
+class Host():
+    name: str
+
+    def __init__(self, name: str):
+        self.name = name
 
 
 class Player():
@@ -25,16 +31,21 @@ class Player():
 
 
 class BuzzGame():
-    id: int
+    host: Host
     players: List[Player]
 
-    def __init__(self, assigned_ids):
-        gid = 123456  # randint(100000, 999999)
-        while gid in assigned_ids:
-            gid = randint(100000, 999999)
-
-        self.id = gid
+    def __init__(self):
+        self.host = None
         self.players = []
+
+    def set_host(self, host: Host):
+        self.host = host
+
+    def remove_host(self):
+        self.host = None
+
+    def has_host(self) -> bool:
+        return self.host is not None
 
     def add_player(self, player: Player):
         self.players.append(player)
@@ -43,9 +54,10 @@ class BuzzGame():
         for p in self.players:
             if p.name == name:
                 return p
-
         return None
 
+    def remove_player(self, name):
+        self.players = [p for p in self.players if p.name != name]
 
 
 class Stopwatch():
@@ -72,6 +84,9 @@ class Stopwatch():
             self._elapsed_intervals = []
 
     def elapsed(self):
+        if len(self._elapsed_intervals) == 0:
+            return None
+
         total = sum(self._elapsed_intervals)
         if self._running:
             total += time() - self._start
