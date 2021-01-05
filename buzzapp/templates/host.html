@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"
+        integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+    <script src="{{url_for('static', filename='scripts.js')}}"></script>
+    <script src="{{url_for('static', filename='stopwatch.js')}}"></script>
+    <script type="text/javascript" charset="utf-8">
+        var socket = io();
+        var gameid = {{ gameid }};
+        socket.on('connect', function () {
+            socket.emit('join_game_host', { gameid: gameid });
+        });
+
+        socket.on('game_update', function (players) {
+            var new_ul = create_player_list(players, "playerlist");
+            document.getElementById("playerlist").replaceWith(new_ul);
+        });
+
+
+        function host_start_stopwatch() {
+            socket.emit('host_stopwatch_action', { gameid: gameid, action: 'start'});
+            stopwatch_start();
+        };
+
+        function host_stop_stopwatch() {
+            socket.emit('host_stopwatch_action', { gameid: gameid, action: 'stop'});
+            stopwatch_stop();
+        };
+
+        function host_reset_stopwatch() {
+            socket.emit('host_stopwatch_action', { gameid: gameid, action: 'reset'});
+            stopwatch_reset();
+        };
+
+        function reset_buzzers() {
+            socket.emit('reset_buzzers', { gameid: gameid });
+        };
+    </script>
+</head>
+
+<body>
+    <p>Hosted game with id {{ gameid }}</p>
+    <ul id="playerlist"></ul>
+    <div>
+        <span id="stopwatch">00:00:00</span>
+        <button id="stopwatch_start" onclick="host_start_stopwatch()">Start</button>
+        <button id="stopwatch_stop" onclick="host_stop_stopwatch()">Stop</button>
+        <button id="stopwatch_reset" onclick="host_reset_stopwatch()">Reset</button>
+    </div>
+    <div>
+        <button id="buzzer_reset" onclick="reset_buzzers()">Reset Buzzers</button>
+    </div>
+</body>
+
+</html>
