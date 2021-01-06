@@ -22,7 +22,7 @@ class Player():
     def buzz(self, clock):
         self.has_buzzed = True
         self.buzz_time = time()
-        self.buzz_time_sw = clock
+        self.buzz_time_sw = f'{clock:05.2F} secs' if clock else None
 
     def reset(self):
         self.has_buzzed = False

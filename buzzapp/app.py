@@ -45,11 +45,16 @@ def index():
 
 @app.route('/host')
 def host():
+    hostname = request.args.get('name')
+
     if game.has_host():
         session['index_errors'] = 'GAME ALREADY HOSTED'
         return redirect('/')
 
-    hostname = request.args.get('name')
+    if game.get_player(hostname):
+        session['index_errors'] = 'NAME ALREADY CHOSEN'
+        return redirect('/')
+
     session.pop('index_errors', None)
     return render_template('host.html', hostname=hostname)
 
@@ -62,7 +67,7 @@ def join():
         session['index_errors'] = 'GAME NOT HOSTED YET'
         return redirect('/')
 
-    if game.get_player(playername):
+    if game.get_player(playername) or game.host.name == playername:
         session['index_errors'] = 'NAME ALREADY CHOSEN'
         return redirect('/')
 
@@ -138,6 +143,7 @@ def host_kick_player(data):
 
 @socketio.on('buzzer_clicked')
 def buzzer_clicked(data):
+    print("BUZZER")
     playername = data['playername']
     player = game.get_player(playername)
 
@@ -159,4 +165,3 @@ def buzzer_reset():
 
 if __name__ == "__main__":
     socketio.run(app, debug=True)
-
