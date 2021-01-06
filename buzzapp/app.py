@@ -71,6 +71,10 @@ def join():
         session['index_errors'] = 'NAME ALREADY CHOSEN'
         return redirect('/')
 
+    if playername == '':
+        session['index_errors'] = 'ENTER A NAME'
+        return redirect('/')
+
     session.pop('index_errors', None)
     return render_template('join.html', hostname=game.host.name, playername=playername)
 
@@ -81,7 +85,8 @@ def join():
 def game_joined(data):
     playername = data['playername']
 
-    if not game.has_host() or game.get_player(playername):
+    if (not game.has_host() or game.get_player(playername) or
+            game.host.name == playername or playername == ''):
         emit('disconnect')
         return
 
@@ -143,7 +148,6 @@ def host_kick_player(data):
 
 @socketio.on('buzzer_clicked')
 def buzzer_clicked(data):
-    print("BUZZER")
     playername = data['playername']
     player = game.get_player(playername)
 

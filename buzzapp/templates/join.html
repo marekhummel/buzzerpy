@@ -68,6 +68,7 @@
         socket.on('player_buzzer_reset', function () {
             buzzer_clicked = false;
             document.getElementById("buzzer").setAttribute("fill", "red");
+            document.getElementById("buzzed").innerHTML = "BUZZ";
         });
 
         socket.on('player_kicked', function (kicked) {
