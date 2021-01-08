@@ -1,0 +1,5 @@
+.vscode/
+__pycache__
+
+exports.ps1
+./ngrok.exe

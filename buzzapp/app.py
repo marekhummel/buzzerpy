@@ -6,7 +6,7 @@ from helper import host_to_json, playerlist_to_json
 from model.game import BuzzGame, Host, Player, Stopwatch
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
+app.config['SECRET_KEY'] = 'jh324j2p948vn2mv50ü'
 socketio = SocketIO(app)
 first_request = True
 
