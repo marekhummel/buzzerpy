@@ -12,8 +12,8 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.js"></script>
 
-    <script src="{{url_for('static', filename='scripts.js')}}?"></script>
-    <script src="{{url_for('static', filename='stopwatch.js')}}?"></script>
+    <script src="{{url_for('static', filename='scripts.js')}}"></script>
+    <script src="{{url_for('static', filename='stopwatch.js')}}"></script>
     <script type="text/javascript" charset="utf-8">
         var socket = io();
         var name = "{{ hostname }}";

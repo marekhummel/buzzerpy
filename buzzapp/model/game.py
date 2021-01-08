@@ -1,5 +1,5 @@
-from time import time
-from typing import List
+from time import monotonic
+from typing import List, Optional
 
 
 class Host():
@@ -12,16 +12,16 @@ class Host():
 class Player():
     name: str
     has_buzzed: bool
-    buzz_time: float
-    buzz_time_sw: float
+    buzz_time: Optional[float]
+    buzz_time_sw: Optional[str]
 
     def __init__(self, name: str):
         self.name = name
         self.reset()
 
-    def buzz(self, clock):
+    def buzz(self, clock: Optional[float]):
         self.has_buzzed = True
-        self.buzz_time = time()
+        self.buzz_time = monotonic()
         self.buzz_time_sw = f'{clock:05.2F} secs' if clock else None
 
     def reset(self):
@@ -50,7 +50,7 @@ class BuzzGame():
     def add_player(self, player: Player):
         self.players.append(player)
 
-    def get_player(self, name) -> Player:
+    def get_player(self, name) -> Optional[Player]:
         for p in self.players:
             if p.name == name:
                 return p
@@ -71,23 +71,23 @@ class Stopwatch():
 
     def start(self):
         if not self._running:
-            self._start = time()
+            self._start = monotonic()
             self._running = True
 
     def stop(self):
         if self._running:
-            self._elapsed_intervals.append(time() - self._start)
+            self._elapsed_intervals.append(monotonic() - self._start)
             self._running = False
 
     def reset(self):
         if not self._running:
             self._elapsed_intervals = []
 
-    def elapsed(self):
+    def elapsed(self) -> Optional[float]:
         if len(self._elapsed_intervals) == 0 and not self._running:
             return None
 
         total = sum(self._elapsed_intervals)
         if self._running:
-            total += time() - self._start
+            total += monotonic() - self._start
         return total

@@ -10,8 +10,8 @@ app.config['SECRET_KEY'] = 'jh324j2p948vn2mv50ü'
 socketio = SocketIO(app)
 first_request = True
 
-game: BuzzGame = BuzzGame()
-sw: Stopwatch = Stopwatch()
+game = BuzzGame()
+stopwatch = Stopwatch()
 
 
 def send_player_update():
@@ -25,17 +25,17 @@ def send_host_update():
 
 
 # Force update of js files
-@app.after_request
-def add_header(response):
-    response.headers['Cache-Control'] = 'no-cache, must-revalidate'
-    return response
+# @app.after_request
+# def add_header(response):
+#     response.headers['Cache-Control'] = 'no-cache, must-revalidate'
+#     return response
 
 
 # ----- APP ROUTES -----
 
 @app.route('/')
 def index():
-    global first_request
+    global first_request  # Not preferred, but works for now
     if first_request:
         session.clear()
         first_request = False
@@ -130,11 +130,11 @@ def host_start_stopwatch(data):
     action = data['action']
 
     if action == 'start':
-        sw.start()
+        stopwatch.start()
     elif action == 'stop':
-        sw.stop()
+        stopwatch.stop()
     elif action == 'reset':
-        sw.reset()
+        stopwatch.reset()
 
     socketio.emit('stopwatch_action', action)
 
@@ -153,7 +153,7 @@ def buzzer_clicked(data):
 
     if not player:
         raise LookupError('Player gone')
-    player.buzz(sw.elapsed())
+    player.buzz(stopwatch.elapsed())
 
     send_player_update()
 
