@@ -21,12 +21,6 @@
         // Connect / disconnect host
         window.onload = function () {
             socket.emit('game_hosted', { hostname: name });
-        //     var new_ul = create_player_list([
-        //         { "name": "Nico", "has_buzzed": false, "buzz_time": 0, "buzz_time_sw": null },
-        //         { "name": "Marlon", "has_buzzed": true, "buzz_time": 35, "buzz_time_sw": "07.75 secs" },
-        //         { "name": "Gordon", "has_buzzed": true, "buzz_time": 20, "buzz_time_sw": "04.12 secs" }
-        //     ], "playerlist", true);
-        //     document.getElementById("playerlist").replaceWith(new_ul);
         };
 
         window.onbeforeunload = function () {
