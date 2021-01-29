@@ -15,8 +15,8 @@ stopwatch = Stopwatch()
 
 
 def send_player_update():
-    playerjson = playerlist_to_json(game.players)
-    socketio.emit('player_update', playerjson)
+    playerjson = playerlist_to_json(game.get_players_ordered())
+    socketio.emit('player_update', (playerjson, game.current_player))
 
 
 def send_host_update():
@@ -154,6 +154,8 @@ def buzzer_clicked(data):
     if not player:
         raise LookupError('Player gone')
     player.buzz(stopwatch.elapsed())
+    if game.current_player is None:
+        game.current_player = 0
 
     send_player_update()
 
@@ -162,6 +164,7 @@ def buzzer_clicked(data):
 def buzzer_reset():
     for p in game.players:
         p.reset_buzzer()
+    game.current_player = None
 
     send_player_update()
     socketio.emit('player_buzzer_reset')
@@ -169,19 +172,32 @@ def buzzer_reset():
 
 @socketio.on('host_change_score')
 def change_score(data):
-    playername = data['playername']
-    player = game.get_player(playername)
-    if not player:
-        raise LookupError('Player gone')
-
     action = data['action']
+    player = None
+
+    if game.current_player is not None:
+        buzzed_players = [p for p in game.players if p.has_buzzed]
+        if game.current_player < len(buzzed_players):
+            player = game.get_players_ordered()[game.current_player]
+   
+    if not player and action != 'bonus':
+        return
+
     if action == 'correct':
         player.correct_answers += 1
     elif action == 'wrong':
         player.wrong_answers += 1
+        game.current_player += 1
     elif action == 'bonus':
+        player_name = data['player_name']
+        player = game.get_player(player_name)
+        if not player:
+            return
+
         points = data['bonus_points']
         player.bonus_points += points
+    elif action == 'skip':
+        game.current_player += 1
 
     send_player_update()
 

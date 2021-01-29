@@ -45,10 +45,12 @@ class Player():
 class BuzzGame():
     host: Host
     players: List[Player]
+    current_player: Player
 
     def __init__(self):
         self.host = None
         self.players = []
+        self.current_player = None
 
     def set_host(self, host: Host):
         self.host = host
@@ -70,6 +72,10 @@ class BuzzGame():
 
     def remove_player(self, name):
         self.players = [p for p in self.players if p.name != name]
+
+    def get_players_ordered(self):
+        def sort_key(p): return (not p.has_buzzed, p.buzz_time_sw)
+        return sorted(self.players, key=sort_key)
 
 
 class Stopwatch():

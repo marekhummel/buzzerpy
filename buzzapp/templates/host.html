@@ -6,14 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Bootstrap -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
-        integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
-
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+        crossorigin="anonymous"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.js"></script>
 
-    <script src="{{url_for('static', filename='scripts.js')}}"></script>
-    <script src="{{url_for('static', filename='stopwatch.js')}}"></script>
+    <script src="{{url_for('static', filename='scripts.js')}}?345"></script>
+    <script src="{{url_for('static', filename='stopwatch.js')}}?345"></script>
+    <!-- <script src="../static/scripts.js"></script> -->
     <script type="text/javascript" charset="utf-8">
         var socket = io();
         var name = "{{ hostname }}";
@@ -22,12 +26,24 @@
         window.onload = function () {
             socket.emit('game_hosted', { hostname: name });
 
-            var new_ul = create_player_list([
-                { "name": "Nico", "has_buzzed": false, "buzz_time": 0, "buzz_time_sw": null },
-                { "name": "Marlon", "has_buzzed": true, "buzz_time": 35, "buzz_time_sw": "07.75 secs" },
-                { "name": "Gordon", "has_buzzed": true, "buzz_time": 20, "buzz_time_sw": "04.12 secs" }
-            ], "playerlist", false);
-            document.getElementById("playerlist").replaceWith(new_ul);
+            // var players = [
+            //     { "name": "Ali", "has_buzzed": true, "buzz_time": 5, "buzz_time_sw": "01.78 secs", "correct_answers": 4, "wrong_answers": 0, "bonus_points": 10, "pts": 50 },
+            //     { "name": "Anna", "has_buzzed": true, "buzz_time": 10, "buzz_time_sw": "02.93 secs", "correct_answers": 7, "wrong_answers": 2, "bonus_points": 0, "pts": 60  },
+            //     { "name": "Gordon", "has_buzzed": true, "buzz_time": 20, "buzz_time_sw": "04.12 secs", "correct_answers": 2, "wrong_answers": 4, "bonus_points": 40, "pts": 40  },
+            //     { "name": "Marlon", "has_buzzed": true, "buzz_time": 35, "buzz_time_sw": "07.75 secs", "correct_answers": 3, "wrong_answers": 1, "bonus_points": 10, "pts": 35  },
+            //     { "name": "Nico", "has_buzzed": false, "buzz_time": 0, "buzz_time_sw": null, "correct_answers": 4, "wrong_answers": 2, "bonus_points": 15, "pts": 45 },
+            //     { "name": "Sören", "has_buzzed": false, "buzz_time": 0, "buzz_time_sw": null, "correct_answers": 4, "wrong_answers": 2, "bonus_points": 20, "pts": 50 }
+            // ];
+            // var players = [];
+
+            // var new_ul = create_player_list(players, 2, "playerlist", true);
+            // document.getElementById("playerlist").replaceWith(new_ul);
+
+            // var new_table = create_scoreboard(players, "scoreboard");
+            // document.getElementById("scoreboard").replaceWith(new_table);
+
+            // var new_dropdown = create_dropdown(players, 'player_dropdown');
+            // document.getElementById("player_dropdown").replaceWith(new_dropdown);
         };
 
         window.onbeforeunload = function () {
@@ -35,9 +51,15 @@
         };
 
         // Game update
-        socket.on('player_update', function (players) {
-            var new_ul = create_player_list(players, "playerlist", true);
+        socket.on('player_update', function (players, current_player) {
+            var new_ul = create_player_list(players, current_player, "playerlist", false);
             document.getElementById("playerlist").replaceWith(new_ul);
+
+            var new_table = create_scoreboard(players, "scoreboard");
+            document.getElementById("scoreboard").replaceWith(new_table);
+
+            var new_dropdown = create_dropdown(players, 'player_dropdown');
+            document.getElementById("player_dropdown").replaceWith(new_dropdown);
         });
 
         socket.on('disconnect', function () {
@@ -63,36 +85,104 @@
         function reset_buzzers() {
             socket.emit('host_buzzer_reset');
         };
-    </script>
+
+        function host_correct_answer() {
+            socket.emit('host_change_score', { action: 'correct' });
+        };
+
+        function host_wrong_answer() {
+            socket.emit('host_change_score', { action: 'wrong' });
+        };
+
+        function host_skip_player() {
+            socket.emit('host_change_score', { action: 'skip' });
+        };
+
+        function host_bonus_points() {
+            player = document.getElementById('player_dropdown').value;
+            if (player === "") return;
+
+            bonus_points = parseInt(document.getElementById('bonus_points').value);
+            socket.emit('host_change_score', { player_name: player, action: 'bonus', bonus_points: bonus_points });
+
+            document.getElementById('player_dropdown').selectedIndex = 1;
+            document.getElementById('bonus_points').value = '';
+        };
+</script>
 </head>
 
 <body>
     <div class="container-fluid">
-        <div class="row my-5">
+        <div class="row mt-3 mb-5">
             <div class="col-xl">
                 <h1 class="text-center">Hosted Game as "{{ hostname }}"</h1>
             </div>
         </div>
 
-        <div class="row"></div>
-
         <div class="row my-5">
             <div class="col-xl-7">
                 <div class="row justify-content-center">
-                    <div class="col-xl-5">
+                    <div class="col-xl-9">
                         <div id="playerlist"></div>
                     </div>
                 </div>
 
+                <div class="row mt-5 justify-content-center mx-auto" style="width: 50%;">
+
+                    <div class="col-xl-4 d-grid col-3 mx-auto">
+                        <button class="btn btn-success btn-block" onclick="host_correct_answer()">Correct Answer (+10)</button>
+                    </div>
+                    
+                    <div class="col-xl-4 d-grid col-3 mx-auto">
+                        <button class="btn btn-danger btn-block" onclick="host_wrong_answer()">Wrong Answer (-5)</button>
+                    </div>
+                    <div class="col-xl-4 d-grid col-3 mx-auto">
+                        <button class="btn btn-secondary btn-block" onclick="host_skip_player()">Skip Player</button>
+                    </div>
+                </div>
                 <div class="row justify-content-center mt-4">
-                    <div class="col-xl-2">
+                    <div class="col-xl-3 d-grid col-3 mx-auto">
                         <button id="buzzer_reset" class="btn btn-primary btn-block" onclick="reset_buzzers()">Reset Buzzers</button>
                     </div>
                 </div>
             </div>
 
             <div class="col-xl-1"></div>
-            <div class="col-xl-3 mt-5">
+            <div class="col-xl-3">
+                <div class="card mb-5 mx-auto">
+                    <div class="card-body">
+                        <h3 class="card-title text-center fw-bold">Scoreboard</h5>
+                        <table class="table table-sm card-text mt-4">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">&check;</th>
+                                    <th scope="col">&cross;</th>
+                                    <th scope="col">&starf;</th>
+                                    <th scope="col">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scoreboard">
+                            </tbody>
+                        </table>
+                        
+                        <form id="form_bonus" class="row row-cols-lg-auto g-3" action="javascript:void(0);">
+                            <div class="col-12">
+                                <select id="player_dropdown" class="form-select form-select-sm" required></select>
+                            </div>
+                            <div class="col-12">
+                                <div class="input-group input-group-sm">
+                                    <input id="bonus_points" type="number" class="form-control" aria-label="Points" aria-describedby="inputGroup-sizing-sm" placeholder="0">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <button class="btn btn-secondary btn-sm" onclick="host_bonus_points()">Add Points</button>
+                            </div>
+                        </form>
+                     </div>
+                </div>
+
                 <div class="card">
                     <svg class="card-img-top">
                         <g>
@@ -104,16 +194,17 @@
                     <div class="card-body">
                         <h5 class="card-title">Stopwatch</h5>
                         <p class="card-text">Stopwatch to get buzzer times</p>
-                        <div class="row justify-content-center mt-4">
-                            <div class="col-xl-4">
-                                <button id="stopwatch_start" class="btn btn-secondary btn-block my-1" onclick="host_start_stopwatch()">Start</button>
+                        <div class="row">
+                            <div class="col-xl-4 d-grid col-3 mx-auto">
+                                <button id="stopwatch_start" class="btn btn-secondary" onclick="host_start_stopwatch()">Start</button>
                             </div>
-                            <div class="col-xl-4">
-                                <button id="stopwatch_stop" class="btn btn-secondary btn-block my-1" onclick="host_stop_stopwatch()">Stop</button>
+                                <div class="col-xl-4 d-grid col-3 mx-auto">
+                                <button id="stopwatch_stop" class="btn btn-secondary" onclick="host_stop_stopwatch()">Stop</button>
                             </div>
-                            <div class="col-xl-4">
-                                <button id="stopwatch_reset" class="btn btn-secondary btn-block my-1" onclick="host_reset_stopwatch()">Reset</button>
+                            <div class="col-xl-4 d-grid col-3 mx-auto">
+                                <button id="stopwatch_reset" class="btn btn-secondary" onclick="host_reset_stopwatch()">Reset</button>
                             </div>
+                        </div>
                         </div>
                     </div>
                 </div>
@@ -122,13 +213,9 @@
         </div>
     </div>
 
-    <div class="row justify-content-center fixed-bottom mb-5">
-        <div class="col-xl-2 mx-3">
-            <button id="button_leave" class="btn btn-danger btn-block" onclick="window.location.href = '/'">Leave Game</button>
-        </div>
+    <div class="d-grid col-2 mx-auto my-3">
+        <button id="button_leave" class="btn btn-danger" type="button" style="width: 100%;" onclick="window.location.href = '/'">Leave Game</button>
     </div>
-
-
 </body>
 
 </html>
