@@ -15,8 +15,8 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.js"></script>
 
-    <script src="{{url_for('static', filename='scripts.js')}}?345"></script>
-    <script src="{{url_for('static', filename='stopwatch.js')}}?345"></script>
+    <script src="{{url_for('static', filename='scripts.js')}}?"></script>
+    <script src="{{url_for('static', filename='stopwatch.js')}}?"></script>
     <!-- <script src="../static/scripts.js"></script> -->
     <script type="text/javascript" charset="utf-8">
         var socket = io();
@@ -52,7 +52,7 @@
 
         // Game update
         socket.on('player_update', function (players, current_player) {
-            var new_ul = create_player_list(players, current_player, "playerlist", false);
+            var new_ul = create_player_list(players, current_player, "playerlist", true);
             document.getElementById("playerlist").replaceWith(new_ul);
 
             var new_table = create_scoreboard(players, "scoreboard");
