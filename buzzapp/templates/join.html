@@ -17,7 +17,7 @@
     <script src="{{url_for('static', filename='scripts.js')}}?"></script>
     <script src="{{url_for('static', filename='stopwatch.js')}}?"></script>
 
-    <!-- <script src="../static/scripts.js"></script> -->
+    <script src="../static/scripts.js"></script>
     <script type="text/javascript" charset="utf-8">       
         var socket = io();
         var buzzer_clicked = false;
@@ -26,23 +26,7 @@
 
         // Connect and disconnect player
         window.onload = function () {
-            socket.emit('game_joined', { playername: name });  
-        
-            // var players = [
-            //     { "name": "Ali", "has_buzzed": true, "buzz_time": 5, "buzz_time_sw": "01.78 secs", "correct_answers": 4, "wrong_answers": 0, "bonus_points": 10, "pts": 50 },
-            //     { "name": "Anna", "has_buzzed": true, "buzz_time": 10, "buzz_time_sw": "02.93 secs", "correct_answers": 7, "wrong_answers": 2, "bonus_points": 0, "pts": 60 },
-            //     { "name": "Gordon", "has_buzzed": true, "buzz_time": 20, "buzz_time_sw": "04.12 secs", "correct_answers": 2, "wrong_answers": 4, "bonus_points": 40, "pts": 40 },
-            //     { "name": "Marlon", "has_buzzed": true, "buzz_time": 35, "buzz_time_sw": "07.75 secs", "correct_answers": 3, "wrong_answers": 1, "bonus_points": 10, "pts": 35 },
-            //     { "name": "Nico", "has_buzzed": false, "buzz_time": 0, "buzz_time_sw": null, "correct_answers": 4, "wrong_answers": 2, "bonus_points": 15, "pts": 45 },
-            //     { "name": "Sören", "has_buzzed": false, "buzz_time": 0, "buzz_time_sw": null, "correct_answers": 4, "wrong_answers": 2, "bonus_points": 20, "pts": 50 }
-            // ];
-
-            // var new_ul = create_player_list(players, 2, "playerlist", false);
-            // document.getElementById("playerlist").replaceWith(new_ul);
-
-            var new_table = create_scoreboard([], "scoreboard");
-            document.getElementById("scoreboard").replaceWith(new_table);
-            
+            socket.emit('game_joined', { playername: name });             
         };
 
         window.onbeforeunload = function () {
@@ -126,8 +110,7 @@
     </script>
 </head>
 
-<body>
-
+<body class="bg-light">
     <div class="container-fluid">
         <div class="row mt-3">
             <div class="col-xl">
@@ -141,7 +124,6 @@
         </div>
 
         <div class="row align-items-center" style="min-height: 60vh;">
-    
             <div class="col-xl-4 mx-auto">
                 <div id="playerlist"></div>
             </div>
@@ -158,7 +140,7 @@
             <div class="col-xl-4">
                 <div class="card mb-5 mx-auto" style="width: 80%;">
                     <div class="card-body">
-                        <h3 class="card-title text-center font-weight-bold">Scoreboard</h5>
+                        <h3 class="card-title text-center fw-bold">Scoreboard</h5>
                             <table class="table table-sm card-text mt-4">
                                 <thead>
                                     <tr>

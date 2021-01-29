@@ -17,7 +17,6 @@
 
     <script src="{{url_for('static', filename='scripts.js')}}?"></script>
     <script src="{{url_for('static', filename='stopwatch.js')}}?"></script>
-    <!-- <script src="../static/scripts.js"></script> -->
     <script type="text/javascript" charset="utf-8">
         var socket = io();
         var name = "{{ hostname }}";
@@ -25,25 +24,6 @@
         // Connect / disconnect host
         window.onload = function () {
             socket.emit('game_hosted', { hostname: name });
-
-            // var players = [
-            //     { "name": "Ali", "has_buzzed": true, "buzz_time": 5, "buzz_time_sw": "01.78 secs", "correct_answers": 4, "wrong_answers": 0, "bonus_points": 10, "pts": 50 },
-            //     { "name": "Anna", "has_buzzed": true, "buzz_time": 10, "buzz_time_sw": "02.93 secs", "correct_answers": 7, "wrong_answers": 2, "bonus_points": 0, "pts": 60  },
-            //     { "name": "Gordon", "has_buzzed": true, "buzz_time": 20, "buzz_time_sw": "04.12 secs", "correct_answers": 2, "wrong_answers": 4, "bonus_points": 40, "pts": 40  },
-            //     { "name": "Marlon", "has_buzzed": true, "buzz_time": 35, "buzz_time_sw": "07.75 secs", "correct_answers": 3, "wrong_answers": 1, "bonus_points": 10, "pts": 35  },
-            //     { "name": "Nico", "has_buzzed": false, "buzz_time": 0, "buzz_time_sw": null, "correct_answers": 4, "wrong_answers": 2, "bonus_points": 15, "pts": 45 },
-            //     { "name": "Sören", "has_buzzed": false, "buzz_time": 0, "buzz_time_sw": null, "correct_answers": 4, "wrong_answers": 2, "bonus_points": 20, "pts": 50 }
-            // ];
-            // var players = [];
-
-            // var new_ul = create_player_list(players, 2, "playerlist", true);
-            // document.getElementById("playerlist").replaceWith(new_ul);
-
-            // var new_table = create_scoreboard(players, "scoreboard");
-            // document.getElementById("scoreboard").replaceWith(new_table);
-
-            // var new_dropdown = create_dropdown(players, 'player_dropdown');
-            // document.getElementById("player_dropdown").replaceWith(new_dropdown);
         };
 
         window.onbeforeunload = function () {
@@ -111,7 +91,7 @@
 </script>
 </head>
 
-<body>
+<body class="bg-light">
     <div class="container-fluid">
         <div class="row mt-3 mb-5">
             <div class="col-xl">
