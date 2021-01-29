@@ -3,3 +3,4 @@ __pycache__
 
 exports.ps1
 ngrok.exe
+buzzapp/static/debug_players.js
