@@ -2,7 +2,8 @@ import json
 
 
 def playerlist_to_json(plist):
-    return json.loads(json.dumps(plist, default=lambda obj: obj.__dict__))
+    def func(p): return dict(p.__dict__, pts=p.get_points())
+    return json.loads(json.dumps(plist, default=func))
 
 
 def host_to_json(host):

@@ -20,7 +20,99 @@
 
         // Connect and disconnect player
         window.onload = function () {
-            socket.emit('game_joined', { playername: name });                        
+            socket.emit('game_joined', { playername: name });  
+            function create_player_list(array, id, host) {
+                if (array.length == 0) {
+                    var list = document.createElement('ul');
+                    list.className = 'list-group';
+
+                    var item = document.createElement('li');
+                    item.className = 'list-group-item list-group-item-secondary';
+
+                    var p = document.createElement('b');
+                    p.style = 'font-size: 130%;';
+                    p.innerText = "No players joined yet";
+                    item.appendChild(p);
+
+                    list.appendChild(item);
+
+                    var div = document.createElement('div');
+                    div.setAttribute("id", id);
+                    div.appendChild(list);
+                    return div;
+                }
+
+
+                // Sort by buzzer first, then by time
+                array.sort(function (a, b) { return -(a.has_buzzed - b.has_buzzed) || a.buzz_time - b.buzz_time })
+
+
+                var buzz_list = document.createElement('ul');
+                buzz_list.className = 'list-group mx-auto';
+                buzz_list.style = 'width: 70%;'
+                var non_buzz_list = document.createElement('ul');
+                non_buzz_list.className = 'list-group mx-auto';
+                non_buzz_list.style = 'width: 70%;'
+
+                var list = buzz_list;
+
+                for (var i = 0; i < array.length; i++) {
+                    var item = document.createElement('li');
+                    item.className = 'list-group-item';
+                    // if (i == 0) item.className += ' list-group-item-success';
+
+                    var p = document.createElement('b');
+                    p.style = 'font-size: 130%;';
+                    p.innerText = array[i].name;
+                    item.appendChild(p);
+
+                    if (array[i].has_buzzed) {
+                        item.className += ' list-group-item-success';
+                        list = buzz_list;
+
+                        if (array[i].buzz_time_sw) {
+                            var sw = document.createElement('span');
+                            sw.style = 'font-size: 100%; vertical-align: middle;';
+                            sw.className = 'badge badge-secondary float-right';
+                            sw.innerText = array[i].buzz_time_sw;
+                            item.appendChild(sw);
+                        }
+                    }
+                    else {
+                        item.className += ' list-group-item-danger';
+                        list = non_buzz_list;
+                    }
+
+
+                    if (host) {
+                        var btn = document.createElement('button');
+                        btn.className = 'btn btn-danger ml-2';
+                        btn.innerText = 'Kick';
+                        const kicked_name = array[i].name;
+                        btn.onclick = function () { socket.emit('host_kick_player', { playername: kicked_name }); };
+                        item.appendChild(btn);
+                    }
+
+                    list.appendChild(item);
+                }
+
+                var div = document.createElement('div');
+                div.setAttribute("id", id);
+                if (buzz_list.childNodes.length > 0 && non_buzz_list.childNodes.length > 0)
+                    buzz_list.className += ' mb-4';
+                if (buzz_list.childNodes.length > 0)
+                    div.appendChild(buzz_list);
+                if (non_buzz_list.childNodes.length > 0)
+                    div.appendChild(non_buzz_list);
+                return div;
+            }
+
+            var new_ul = create_player_list([
+                { "name": "Nico", "has_buzzed": false, "buzz_time": 0, "buzz_time_sw": null },
+                { "name": "Marlon", "has_buzzed": true, "buzz_time": 35, "buzz_time_sw": "07.75 secs" },
+                { "name": "Gordon", "has_buzzed": true, "buzz_time": 20, "buzz_time_sw": "04.12 secs" }
+            ], "playerlist", false);
+            document.getElementById("playerlist").replaceWith(new_ul);                      
         };
 
         window.onbeforeunload = function () {
@@ -117,8 +209,7 @@
 
         <div class="row align-items-center" style="min-height: 60vh;">
     
-            <div class="col-xl-1"></div>
-            <div class="col-xl-3">
+            <div class="col-xl-4 mx-auto">
                 <div id="playerlist"></div>
             </div>
 
@@ -131,9 +222,8 @@
                 </svg>
             </div>
     
-            <div class="col-xl-1"></div>
-            <div class="col-xl-2">
-                <div class="card">
+            <div class="col-xl-4">
+                <div class="card mx-auto" style="width: 60%;">
                     <svg class="card-img-top">
                         <g>
                             <rect width="100%" height="100%" fill="lightgray" />
@@ -146,15 +236,59 @@
                         <p class="card-text">Stopwatch to get buzzer times</p>
                     </div>
                 </div>
+
+                <div class="card mt-5 mx-auto" style="width: 80%;">
+                    <div class="card-body">
+                        <h3 class="card-title text-center font-weight-bold">Scoreboard</h5>
+                        <table class="table table-sm card-text mt-4">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">&check;</th>
+                                    <th scope="col">&cross;</th>
+                                    <th scope="col">&starf;</th>
+                                    <th scope="col">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">1</th>
+                                    <td>Mark</td>
+                                    <td>6</td>
+                                    <td>2</td>
+                                    <td>50</td>
+                                    <td>170</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">2</th>
+                                    <td>Jacob</td>
+                                    <td>6</td>
+                                    <td>2</td>
+                                    <td>50</td>
+                                    <td>170</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">3</th>
+                                    <td>Larry</td>
+                                    <td>6</td>
+                                    <td>2</td>
+                                    <td>50</td>
+                                    <td>170</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <div class="col-xl-1"></div>
         </div>
     </div>
     
-    <div class="row justify-content-center fixed-bottom mb-5">
+    <div class="row justify-content-center mb-5">
         <div class="col-xl-2">
-            <button id="button_leave" class="btn btn-danger btn-block" onclick="window.location.href = '/'">Leave
-                Game</button>
+            <button id="button_leave" class="btn btn-danger btn-block" onclick="window.location.href = '/'">
+                Leave Game
+            </button>
         </div>
     </div>
 

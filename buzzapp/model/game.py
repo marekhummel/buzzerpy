@@ -14,6 +14,9 @@ class Player():
     has_buzzed: bool
     buzz_time: Optional[float]
     buzz_time_sw: Optional[str]
+    correct_answers: int
+    wrong_answers: int
+    bonus_points: int
 
     def __init__(self, name: str):
         self.name = name
@@ -25,9 +28,18 @@ class Player():
         self.buzz_time_sw = f'{clock:05.2F} secs' if clock else None
 
     def reset(self):
+        self.correct_answers = 0
+        self.wrong_answers = 0
+        self.bonus_points = 0
+        self.reset_buzzer()
+
+    def reset_buzzer(self):
         self.has_buzzed = False
         self.buzz_time = None
         self.buzz_time_sw = None
+
+    def get_points(self):
+        return self.correct_answers * 10 - self.wrong_answers * 5 + self.bonus_points
 
 
 class BuzzGame():

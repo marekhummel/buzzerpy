@@ -161,10 +161,29 @@ def buzzer_clicked(data):
 @socketio.on('host_buzzer_reset')
 def buzzer_reset():
     for p in game.players:
-        p.reset()
+        p.reset_buzzer()
 
     send_player_update()
     socketio.emit('player_buzzer_reset')
+
+
+@socketio.on('host_change_score')
+def change_score(data):
+    playername = data['playername']
+    player = game.get_player(playername)
+    if not player:
+        raise LookupError('Player gone')
+
+    action = data['action']
+    if action == 'correct':
+        player.correct_answers += 1
+    elif action == 'wrong':
+        player.wrong_answers += 1
+    elif action == 'bonus':
+        points = data['bonus_points']
+        player.bonus_points += points
+
+    send_player_update()
 
 
 if __name__ == "__main__":
