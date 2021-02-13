@@ -98,8 +98,9 @@ def game_joined(data):
 @socketio.on('game_left')
 def game_left(data):
     playername = data['playername']
-    game.remove_player(playername)
-    send_player_update()
+    if game.get_player(playername):
+        game.remove_player(playername)
+        send_player_update()
 
 
 @socketio.on('game_hosted')
@@ -143,7 +144,9 @@ def host_start_stopwatch(data):
 def host_kick_player(data):
     playername = data['playername']
     socketio.emit('player_kicked', playername)
-    # Model change will happen upon the disconnect coming from the kicked user
+    if game.get_player(playername):
+        game.remove_player(playername)
+        send_player_update()
 
 
 @socketio.on('buzzer_clicked')

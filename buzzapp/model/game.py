@@ -74,7 +74,7 @@ class BuzzGame():
         self.players = [p for p in self.players if p.name != name]
 
     def get_players_ordered(self):
-        def sort_key(p): return (not p.has_buzzed, p.buzz_time_sw)
+        def sort_key(p): return (not p.has_buzzed, p.buzz_time)
         return sorted(self.players, key=sort_key)
 
 
