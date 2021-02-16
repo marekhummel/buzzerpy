@@ -59,7 +59,6 @@ function create_player_list(game, id) {
 
             // Coloring
             if (player.round_has_answered) {
-                console.log(player.name + ' ' + player.round_correct_answer);
                 if (player.round_correct_answer) {
                     // Correct answer
                     item.classList.add('list-group-item-success', 'buzzer_list_item_correct');
@@ -198,7 +197,7 @@ function create_scoreboard(players, id, is_host) {
 }
 
 function create_dropdown(players, id) {
-    players.sort(function (a, b) { return -a.name.localeCompare(b.name); });
+    players.sort(function (a, b) { return a.name.localeCompare(b.name); });
 
     var select = document.createElement('select');
     select.setAttribute('id', id);
@@ -235,4 +234,44 @@ function toggle_answer_button_status(players) {
     document.getElementById('correct_button').disabled = !guesser_left;
     document.getElementById('wrong_button').disabled = !guesser_left;
     document.getElementById('skip_button').disabled = !guesser_left;
+}
+
+
+function create_guess_overview(players, id) {
+    if (players.length == 0) {
+        var tbody = document.createElement('tbody');
+        tbody.setAttribute('id', id);
+
+        var tr = document.createElement('tr');
+
+        var td = document.createElement('td');
+        td.className = 'text-center pt-2 pb-4';
+        td.setAttribute('colspan', 2);
+        td.innerText = 'No players joined yet';
+
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return tbody;
+    }
+
+    // Sort by pts, correct, wrong, bonus, name
+    players.sort(function (a, b) { return a.name.localeCompare(b.name); });
+
+    var tbody = document.createElement('tbody');
+    tbody.setAttribute('id', id);
+    for (var i = 0; i < players.length; i++) {
+        var row = document.createElement('tr');
+
+        var td_name = document.createElement('td');
+        td_name.innerHTML = players[i].name;
+        row.appendChild(td_name);
+
+        var td_guess = document.createElement('td');
+        td_guess.innerHTML = players[i].round_guess ?? '-';
+        row.appendChild(td_guess);
+
+        tbody.appendChild(row);
+    }
+
+    return tbody;
 }

@@ -20,7 +20,9 @@ class Player():
     correct_answers: int
     wrong_answers: int
     bonus_points: int
+    round_has_answered: bool
     round_correct_answer: bool
+    round_guess: str
 
     def __init__(self, name: str):
         self.name = name
@@ -50,6 +52,7 @@ class Player():
         self.buzz_time_sw = None
         self.round_has_answered = False
         self.round_correct_answer = None
+        self.round_guess = None
 
     def get_points(self):
         net = self.correct_answers * 10 - self.wrong_answers * 5

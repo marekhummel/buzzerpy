@@ -74,6 +74,10 @@
             buzzer_clicked = false;
             document.getElementById("buzzer").setAttribute("fill", "#d9534f");
             document.getElementById("buzzed").innerHTML = "BUZZ";
+            document.getElementById('input_guess').value = '';
+            document.getElementById('input_guess').disabled = false;
+            document.getElementById('btn_lock_guess').innerText = 'Lock In';
+            document.getElementById('btn_lock_guess').disabled = false;
         });
 
         socket.on('player_kicked', function (kicked) {
@@ -104,6 +108,14 @@
                 document.getElementById("buzzer").setAttribute("fill", "#5cb85c");
                 document.getElementById("buzzed").innerHTML = "BUZZED";
             };
+        };
+
+        function lock_in_guess() {
+            var guess = document.getElementById('input_guess').value;
+            socket.emit('guess_locked_in', { playername: name, guess: guess });
+            document.getElementById('input_guess').disabled = true;
+            document.getElementById('btn_lock_guess').disabled = true;
+            document.getElementById('btn_lock_guess').innerText = 'Locked';
         };
 
         document.addEventListener('keydown', function (event) {
@@ -141,7 +153,7 @@
             </div>
     
             <div class="col-xl-4">
-                <div class="card bg-light mb-5 mx-auto" style="width: 80%;">
+                <div class="card mb-5 mx-auto" style="width: 80%;">
                     <div class="card-body">
                         <h3 class="card-title text-center fw-bold">Scoreboard</h5>
                             <table class="table table-sm card-text mt-4">
@@ -160,8 +172,23 @@
                     </div>
                 </div>
 
+                <div class="card mb-5 mx-auto" style="width: 80%;">
+                    <div class="card-body">
+                        <h3 class="card-title text-center fw-bold mb-3">Guesses</h3>
+                        <form action="javascript:void(0);">
+                            <div class="row">
+                                <div class="col-9">
+                                    <input id="input_guess" class="form-control" placeholder="Your Guess"></input>
+                                </div>
+                                <div class="col-3">
+                                    <button id="btn_lock_guess" type="submit" class="btn btn-secondary" onclick="lock_in_guess()">Lock In</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
 
-                <div class="card bg-light mx-auto" style="width: 80%;">
+                <div class="card mx-auto" style="width: 80%;">
                     <svg class="card-img-top">
                         <g>
                             <rect width="100%" height="100%" fill="lightgray" />

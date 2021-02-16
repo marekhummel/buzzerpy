@@ -37,14 +37,16 @@
         socket.on('game_update', function (game) {
             var new_ul = create_player_list(game, "playerlist");
             document.getElementById("playerlist").replaceWith(new_ul);
+            toggle_answer_button_status(game.players);
 
-            var new_table = create_scoreboard(game.players, "scoreboard", true);
-            document.getElementById("scoreboard").replaceWith(new_table);
+            var new_scoreboard = create_scoreboard(game.players, "scoreboard", true);
+            document.getElementById("scoreboard").replaceWith(new_scoreboard);
 
             var new_dropdown = create_dropdown(game.players, 'player_dropdown');
             document.getElementById("player_dropdown").replaceWith(new_dropdown);
 
-            toggle_answer_button_status(game.players);
+            var new_overview = create_guess_overview(game.players, "guess_overview");
+            document.getElementById("guess_overview").replaceWith(new_overview);
         });
 
         socket.on('disconnect', function () {
@@ -153,20 +155,38 @@
                             </tbody>
                         </table>
                         
-                        <form id="form_bonus" class="row row-cols-lg-auto g-3" action="javascript:void(0);">
-                            <div class="col-12">
-                                <select id="player_dropdown" class="form-select form-select-sm" required></select>
-                            </div>
-                            <div class="col-12">
-                                <div class="input-group input-group-sm">
-                                    <input id="bonus_points" type="number" class="form-control" aria-label="Points" aria-describedby="inputGroup-sizing-sm" placeholder="0">
+                        <form id="form_bonus" action="javascript:void(0);">
+                            <div class="row">
+                                <div class="col-6">
+                                    <select id="player_dropdown" class="form-select form-select-sm" required></select>
                                 </div>
-                            </div>
-                            <div class="col-12">
-                                <button class="btn btn-secondary btn-sm" onclick="host_bonus_points()">Add Points</button>
+                                <div class="col-3">
+                                    <div class="input-group input-group-sm">
+                                        <input id="bonus_points" type="number" class="form-control" aria-label="Points" aria-describedby="inputGroup-sizing-sm" placeholder="0">
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <button class="btn btn-secondary btn-sm" onclick="host_bonus_points()">Add Points</button>
+                                </div>
                             </div>
                         </form>
                      </div>
+                </div>
+
+                <div class="card mb-5">
+                    <div class="card-body">
+                        <h3 class="card-title text-center fw-bold mb-3">Guesses</h3>
+                        <table class="table table-sm card-text table-striped mt-4">
+                            <thead>
+                                <tr>
+                                    <th scope="col" style="width: 35%;">Name</th>
+                                    <th scope="col-4">Guess</th>
+                                </tr>
+                            </thead>
+                            <tbody id="guess_overview">
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <div class="card">

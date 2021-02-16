@@ -79,6 +79,9 @@ def join():
 
 # ----- SOCKET COMMUNICATION -----
 
+
+# -- Connect / disconnect --
+
 @socketio.on('game_joined')
 def game_joined(data):
     playername = data['playername']
@@ -124,6 +127,8 @@ def game_host_left():
     send_game_update()
 
 
+# -- Stopwatch --
+
 @socketio.on('host_stopwatch_action')
 def host_start_stopwatch(data):
     action = data['action']
@@ -157,6 +162,21 @@ def buzzer_clicked(data):
     player.buzz(stopwatch.elapsed())
 
     send_game_update()
+
+
+# -- Misc --
+
+@socketio.on('guess_locked_in')
+def guess_locked_in(data):
+    playername = data['playername']
+    player = game.get_player(playername)
+
+    if not player:
+        raise LookupError('Player gone')
+
+    if not player.round_guess:
+        player.round_guess = data['guess']
+        send_game_update()
 
 
 @socketio.on('host_next_round')
