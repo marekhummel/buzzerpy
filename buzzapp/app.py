@@ -22,10 +22,10 @@ def send_host_update():
 
 
 # Force update of js files
-# @app.after_request
-# def add_header(response):
-#     response.headers['Cache-Control'] = 'no-cache, must-revalidate'
-#     return response
+@app.after_request
+def add_header(response):
+    response.headers['Cache-Control'] = 'no-store'
+    return response
 
 
 # ----- APP ROUTES -----

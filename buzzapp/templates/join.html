@@ -111,7 +111,7 @@
         };
 
         function lock_in_guess() {
-            send_click();
+            // send_click();
 
             var guess = document.getElementById('input_guess').value;
             socket.emit('guess_locked_in', { playername: name, guess: guess });

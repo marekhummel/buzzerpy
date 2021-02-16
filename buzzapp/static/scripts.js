@@ -254,7 +254,7 @@ function create_guess_overview(players, id) {
 
         var td = document.createElement('td');
         td.className = 'text-center pt-2 pb-4';
-        td.setAttribute('colspan', 2);
+        td.setAttribute('colspan', 3);
         td.innerText = 'No players joined yet';
 
         tr.appendChild(td);
@@ -277,6 +277,17 @@ function create_guess_overview(players, id) {
         var td_guess = document.createElement('td');
         td_guess.innerHTML = players[i].round_guess ?? '';
         row.appendChild(td_guess);
+
+        var td_correct = document.createElement('td');
+        var btn = document.createElement('button');
+        btn.className = 'btn btn-sm btn-success ms-4';
+        btn.style = 'font-size: 70%;';
+        btn.innerHTML = '&check;';
+        const player_name = players[i].name;
+        btn.onclick = function () { socket.emit('host_change_score', { player_name: player_name, action: 'correct' });};
+        btn.disabled = players[i].round_has_answered || !players[i].round_guess;
+        td_correct.appendChild(btn);
+        row.appendChild(td_correct);
 
         tbody.appendChild(row);
     }
