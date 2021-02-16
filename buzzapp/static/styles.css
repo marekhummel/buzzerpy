@@ -4,8 +4,7 @@
 }
 
 .buzz_time_badge {
-    font-size: 90%; 
-    float:right;
+    font-size: 75%; 
 }
 
 #button_leave {
@@ -17,7 +16,7 @@
 }
 
 .buzzer_list_item_correct {
-    border: 2px solid rgb(157, 204, 142) !important;
+    border: 2px solid rgb(171, 202, 161) !important;
 }
 
 .buzzer_list_item_wrong {
@@ -25,7 +24,7 @@
 }
 
 .buzzer_list_item_wait {
-    border: 2px solid rgb(235, 232, 76) !important;
+    border: 2px solid rgb(212, 211, 137) !important;
 }
 
 .buzzer_list_item_stale {

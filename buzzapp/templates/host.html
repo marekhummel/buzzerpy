@@ -20,6 +20,7 @@
     <script src="{{url_for('static', filename='scripts.js')}}?"></script>
     <script src="{{url_for('static', filename='stopwatch.js')}}?"></script>
     <link href="{{url_for('static', filename='styles.css')}}?" rel="stylesheet"></link>
+
     <script type="text/javascript" charset="utf-8">
         var socket = io();
         var name = "{{ hostname }}";
@@ -106,36 +107,8 @@
             </div>
         </div>
 
-        <div class="row my-5">
-            <div class="col-xl-7">
-                <div class="row justify-content-center">
-                    <div class="col-xl-9">
-                        <div id="playerlist"></div>
-                    </div>
-                </div>
-
-                <div class="row mt-5 justify-content-center mx-auto" style="width: 50%;">
-
-                    <div class="col-xl-4 d-grid col-3 mx-auto">
-                        <button id="correct_button" class="btn btn-success btn-block" onclick="host_correct_answer()">Correct Answer (+10)</button>
-                    </div>
-                    
-                    <div class="col-xl-4 d-grid col-3 mx-auto">
-                        <button id="wrong_button" class="btn btn-danger btn-block" onclick="host_wrong_answer()">Wrong Answer (-5)</button>
-                    </div>
-                    <div class="col-xl-4 d-grid col-3 mx-auto">
-                        <button id="skip_button" class="btn btn-secondary btn-block" onclick="host_skip_player()">Skip Player</button>
-                    </div>
-                </div>
-                <div class="row justify-content-center mt-4">
-                    <div class="col-xl-3 d-grid col-3 mx-auto">
-                        <button id="next_round" class="btn btn-primary btn-block" onclick="next_round()">Next Round</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-1"></div>
-            <div class="col-xl-3">
+        <div class="row mt-5">
+            <div class="col-xl-3 ps-3">
                 <div class="card mb-5 mx-auto">
                     <div class="card-body">
                         <h4 class="card-title text-center fw-bold">Scoreboard</h4>
@@ -154,7 +127,7 @@
                             <tbody id="scoreboard">
                             </tbody>
                         </table>
-                        
+                
                         <form id="form_bonus" action="javascript:void(0);">
                             <div class="row">
                                 <div class="col-6">
@@ -162,17 +135,52 @@
                                 </div>
                                 <div class="col-3">
                                     <div class="input-group input-group-sm">
-                                        <input id="bonus_points" type="number" class="form-control" aria-label="Points" aria-describedby="inputGroup-sizing-sm" placeholder="0">
+                                        <input id="bonus_points" type="number" class="form-control" aria-label="Points"
+                                            aria-describedby="inputGroup-sizing-sm" placeholder="0">
                                     </div>
                                 </div>
                                 <div class="col-3">
-                                    <button class="btn btn-secondary btn-sm" onclick="host_bonus_points()">Add Points</button>
+                                    <button class="btn btn-secondary btn-sm w-100" onclick="host_bonus_points()">Add Points</button>
                                 </div>
                             </div>
                         </form>
-                     </div>
+                    </div>
                 </div>
+            </div>
+            
+            <div class="col-xl-6 px-5">
+                <div class="card mb-5 mx-auto border border-secondary" style="background-color: #D9D9D9;">
+                    <div class="card-body">
+                        <h2 class="card-title text-center mb-4 fw-bold">Buzzes</h2>
+                        <div class="row justify-content-center">
+                            <div class="col-xl-9">
+                                <div id="playerlist"></div>
+                            </div>
+                        </div>
 
+                        <div class="row justify-content-center mx-auto px-5 mt-5 pt-5">
+
+                            <div class="col-xl-4 d-grid col-3 mx-auto">
+                                <button id="correct_button" class="btn btn-success btn-block" onclick="host_correct_answer()">Correct Answer (+10)</button>
+                            </div>
+                            
+                            <div class="col-xl-4 d-grid col-3 mx-auto">
+                                <button id="wrong_button" class="btn btn-danger btn-block" onclick="host_wrong_answer()">Wrong Answer (-5)</button>
+                            </div>
+                            <div class="col-xl-4 d-grid col-3 mx-auto">
+                                <button id="skip_button" class="btn btn-secondary btn-block" onclick="host_skip_player()">Skip Player</button>
+                            </div>
+                        </div>
+                        <div class="row justify-content-center my-4">
+                            <div class="col-xl-6 d-grid col-3 mx-auto">
+                                <button id="next_round" class="btn btn-primary btn-block" onclick="next_round()">Next Round</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 pe-3">
                 <div class="card mb-5">
                     <div class="card-body">
                         <h4 class="card-title text-center fw-bold mb-3">Guesses</h4>
@@ -206,15 +214,13 @@
                                 <button id="stopwatch_reset" class="btn btn-secondary btn-sm" onclick="host_reset_stopwatch()">Reset</button>
                             </div>
                         </div>
-                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-xl-1"></div>
         </div>
     </div>
 
-    <div class="d-grid col-2 mx-auto my-3">
+    <div class="d-grid col-2 mx-auto">
         <button id="button_leave" class="btn btn-danger" type="button" onclick="window.location.href = '/'">Leave Game</button>
     </div>
 </body>

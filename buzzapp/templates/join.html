@@ -29,7 +29,7 @@
 
         // Connect and disconnect player
         window.onload = function () {
-            socket.emit('game_joined', { playername: name });   
+            socket.emit('game_joined', { playername: name }); 
         };
 
         window.onbeforeunload = function () {
@@ -132,19 +132,25 @@
                 <h1 class="text-center">Joined Game as "{{ playername }}"</h1>
             </div>
         </div>
+
         <div class="row mb-5">
             <div class="col-xl">
                 <h3 class="text-center" id="hostname">Hosted by "{{ hostname }}"</h3>
             </div>
         </div>
 
-        <div class="row align-items-center" style="min-height: 60vh;">
-            <div class="col-xl-4 mx-auto">
-                <div id="playerlist"></div>
+        <div class="row align-items-center">
+            <div class="col-xl-4 px-5">
+                <div class="card mb-3 mx-auto border border-secondary" style="background-color: #D9D9D9;">
+                    <div class="card-body">
+                        <h4 class="card-title text-center mb-4 fw-bold">Buzzes</h4>
+                        <div id="playerlist"></div>
+                    </div>
+                </div>
             </div>
 
             <div class="col-xl-4 mb-5">
-                <svg style="display: block; margin: auto;" viewBox="0 0 100 100" width="80%">
+                <svg style="display: block; margin: auto;" viewBox="0 0 100 100" width="75%">
                     <g>
                         <circle id="buzzer" class="p-3 bg-danger text-white" onclick='send_click()' cx="50" cy="50" r="45" stroke="black" stroke-width="1" fill="#d9534f"/>
                         <text id="buzzed" style="pointer-events: none;" x="50%" y="50%" font-size="100%" dominant-baseline="middle" text-anchor="middle">BUZZ</text>
@@ -153,35 +159,35 @@
             </div>
     
             <div class="col-xl-4">
-                <div class="card mb-5 mx-auto" style="width: 80%;">
+                <div class="card mb-3 mx-auto" style="width: 80%;">
                     <div class="card-body">
-                        <h3 class="card-title text-center fw-bold">Scoreboard</h5>
-                            <table class="table table-sm card-text mt-4">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">#</th>
-                                        <th scope="col">Name</th>
-                                        <th scope="col" data-toggle="tooltip" data-placement="top" title="Correct answers">&check;</th>
-                                        <th scope="col" data-toggle="tooltip" data-placement="top" title="Wrong answers">&cross;</th>
-                                        <th scope="col" data-toggle="tooltip" data-placement="top" title="Bonus points">&starf;</th>
-                                        <th scope="col">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="scoreboard"></tbody>
-                            </table>
+                        <h4 class="card-title text-center fw-bold">Scoreboard</h4>
+                        <table class="table table-sm card-text mt-4">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col" data-toggle="tooltip" data-placement="top" title="Correct answers">&check;</th>
+                                    <th scope="col" data-toggle="tooltip" data-placement="top" title="Wrong answers">&cross;</th>
+                                    <th scope="col" data-toggle="tooltip" data-placement="top" title="Bonus points">&starf;</th>
+                                    <th scope="col">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scoreboard"></tbody>
+                        </table>
                     </div>
                 </div>
 
-                <div class="card mb-5 mx-auto" style="width: 80%;">
+                <div class="card mb-3 mx-auto" style="width: 80%;">
                     <div class="card-body">
-                        <h3 class="card-title text-center fw-bold mb-3">Guesses</h3>
+                        <h4 class="card-title text-center fw-bold mb-3">Guesses</h4>
                         <form action="javascript:void(0);">
                             <div class="row">
-                                <div class="col-9">
-                                    <input id="input_guess" class="form-control" placeholder="Your Guess"></input>
+                                <div class="col-8 input-group-lg">
+                                    <input id="input_guess" class="form-control " placeholder="Your Guess"></input>
                                 </div>
-                                <div class="col-3">
-                                    <button id="btn_lock_guess" type="submit" class="btn btn-secondary" onclick="lock_in_guess()">Lock In</button>
+                                <div class="col-4">
+                                    <button id="btn_lock_guess" type="submit" class="btn btn-secondary btn-lg w-100" onclick="lock_in_guess()">Lock In</button>
                                 </div>
                             </div>
                         </form>

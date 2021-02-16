@@ -3,7 +3,7 @@ function create_player_list(game, id) {
         var list = document.createElement('ul');
         list.classList.add('list-group', 'mx-auto');
         list.classList.add('gap-1');
-        list.style = 'width: 55%;';
+        list.style = 'width: 100%;';
         return list;
     }
 
@@ -11,26 +11,39 @@ function create_player_list(game, id) {
         var item = document.createElement('li');
         item.classList.add('list-group-item');
         item.classList.add('border', 'rounded', 'buzzer_list_item');
-        return item;
-    }
 
-    function new_content() {
+        var row = document.createElement('div');
+        row.classList.add('row');
+        item.appendChild(row);
+
+        var col_left = document.createElement('div');
+        col_left.classList.add('col-2');
+        row.appendChild(col_left);
+
+        var col_middle = document.createElement('div');
+        col_middle.classList.add('col-8');
+        row.appendChild(col_middle);
+
+        var col_right = document.createElement('div');
+        col_right.classList.add('col-2', 'd-flex', 'align-items-center', 'justify-content-end');
+        row.appendChild(col_right);
+
         var content = document.createElement('span');
         content.classList.add('d-flex', 'justify-content-center');
         content.style = 'font-size: 110%;';
-        return content;
-    }
+        col_middle.appendChild(content);
 
+        return [item, content, col_right];
+    }
 
     if (game.players.length == 0) {
         var list = new_list();
 
-        var item = new_list_item();
+        var [item, content, col_right] = new_list_item();
         item.classList.add('list-group-item-secondary');
-        var content = new_content();
         content.classList.add('fw-bold');
         content.innerText = 'No players joined yet';
-        item.appendChild(content);
+
 
         list.appendChild(item);
 
@@ -46,10 +59,7 @@ function create_player_list(game, id) {
     var current_guesser_idx = -1;
     for (var i = 0; i < game.players.length; i++) {
         var player = game.players[i];
-        var item = new_list_item();
-
-        var content = new_content();
-        item.appendChild(content);
+        var [item, content, col_right] = new_list_item();
 
         if (player.has_buzzed) {
             // Name
@@ -89,9 +99,9 @@ function create_player_list(game, id) {
             // Add bagde for stopwatch
             if (player.buzz_time_sw) {
                 var sw = document.createElement('span');
-                sw.className = 'badge bg-secondary mt-1 buzz_time_badge';
+                sw.className = 'badge bg-secondary buzz_time_badge';
                 sw.innerText = player.buzz_time_sw;
-                item.appendChild(sw);
+                col_right.appendChild(sw);
             }
 
             buzz_list.appendChild(item);
@@ -120,8 +130,6 @@ function create_player_list(game, id) {
 }
 
 function create_scoreboard(players, id, is_host) {
-    console.log(is_host);
-
     function create_kick_button(player) {
         var btn = document.createElement('button');
         btn.className = 'btn btn-sm btn-danger ms-4 kick_button';
@@ -140,7 +148,7 @@ function create_scoreboard(players, id, is_host) {
 
         var td = document.createElement('td');
         td.className = 'text-center pt-2 pb-4';
-        td.setAttribute('colspan', 6);
+        td.setAttribute('colspan', 7);
         td.innerText = 'No players joined yet';
 
         tr.appendChild(td);
