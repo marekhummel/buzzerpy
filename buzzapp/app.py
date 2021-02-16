@@ -191,23 +191,25 @@ def change_score(data):
     action = data['action']
     player = game.get_round_player()
 
-    if not player and action != 'bonus':
-        return
+    if player:
+        if action == 'correct':
+            player.correct_answer()
+        elif action == 'wrong':
+            player.wrong_answer()
+        elif action == 'skip':
+            player.round_has_answered = True
 
-    if action == 'correct':
-        player.correct_answer()
-    elif action == 'wrong':
-        player.wrong_answer()
-    elif action == 'bonus':
+    else:
         player_name = data['player_name']
         player = game.get_player(player_name)
         if not player:
             return
 
-        points = data['bonus_points']
-        player.bonus_points += points
-    elif action == 'skip':
-        player.round_has_answered = True
+        if action == 'correct':
+            player.correct_answer()
+        elif action == 'bonus':
+            points = data['bonus_points']
+            player.bonus_points += points
 
     send_game_update()
 
