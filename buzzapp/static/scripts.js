@@ -267,7 +267,7 @@ function create_guess_overview(players, id) {
         row.appendChild(td_name);
 
         var td_guess = document.createElement('td');
-        td_guess.innerHTML = players[i].round_guess ?? '-';
+        td_guess.innerHTML = players[i].round_guess ?? '';
         row.appendChild(td_guess);
 
         tbody.appendChild(row);

@@ -138,7 +138,7 @@
             <div class="col-xl-3">
                 <div class="card mb-5 mx-auto">
                     <div class="card-body">
-                        <h3 class="card-title text-center fw-bold">Scoreboard</h5>
+                        <h4 class="card-title text-center fw-bold">Scoreboard</h4>
                         <table class="table table-sm card-text table-striped mt-4">
                             <thead>
                                 <tr>
@@ -175,7 +175,7 @@
 
                 <div class="card mb-5">
                     <div class="card-body">
-                        <h3 class="card-title text-center fw-bold mb-3">Guesses</h3>
+                        <h4 class="card-title text-center fw-bold mb-3">Guesses</h4>
                         <table class="table table-sm card-text table-striped mt-4">
                             <thead>
                                 <tr>
@@ -190,25 +190,20 @@
                 </div>
 
                 <div class="card">
-                    <svg class="card-img-top">
-                        <g>
-                            <rect width="100%" height="100%" fill="lightgray" />
-                            <text id="stopwatch" x="50%" y="50%" font-size="250%" dominant-baseline="middle"
-                                text-anchor="middle">00:00:00</text>
-                        </g>
-                    </svg>
                     <div class="card-body">
-                        <h5 class="card-title">Stopwatch</h5>
-                        <p class="card-text">Stopwatch to get buzzer times</p>
+                        <h4 class="card-title text-center fw-bold mb-3">Stopwatch</h4>
                         <div class="row">
+                            <span id="stopwatch" class="text-center text-dark mb-3 fw-bold font-monospace">00:00:00</span>
+                        </div>
+                        <div class="row card-text">
                             <div class="col-xl-4 d-grid col-3 mx-auto">
-                                <button id="stopwatch_start" class="btn btn-secondary" onclick="host_start_stopwatch()">Start</button>
+                                <button id="stopwatch_start" class="btn btn-secondary btn-sm" onclick="host_start_stopwatch()">Start</button>
                             </div>
                                 <div class="col-xl-4 d-grid col-3 mx-auto">
-                                <button id="stopwatch_stop" class="btn btn-secondary" onclick="host_stop_stopwatch()">Stop</button>
+                                <button id="stopwatch_stop" class="btn btn-secondary btn-sm" onclick="host_stop_stopwatch()">Stop</button>
                             </div>
                             <div class="col-xl-4 d-grid col-3 mx-auto">
-                                <button id="stopwatch_reset" class="btn btn-secondary" onclick="host_reset_stopwatch()">Reset</button>
+                                <button id="stopwatch_reset" class="btn btn-secondary btn-sm" onclick="host_reset_stopwatch()">Reset</button>
                             </div>
                         </div>
                         </div>
