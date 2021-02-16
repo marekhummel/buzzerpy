@@ -19,6 +19,7 @@
 
     <script src="{{url_for('static', filename='scripts.js')}}?"></script>
     <script src="{{url_for('static', filename='stopwatch.js')}}?"></script>
+    <link href="{{url_for('static', filename='styles.css')}}?" rel="stylesheet"></link>
     <script type="text/javascript" charset="utf-8">
         var socket = io();
         var name = "{{ hostname }}";
@@ -33,15 +34,17 @@
         };
 
         // Game update
-        socket.on('player_update', function (players, current_player) {
-            var new_ul = create_player_list(players, current_player, "playerlist", true);
+        socket.on('game_update', function (game) {
+            var new_ul = create_player_list(game, "playerlist");
             document.getElementById("playerlist").replaceWith(new_ul);
 
-            var new_table = create_scoreboard(players, "scoreboard");
+            var new_table = create_scoreboard(game.players, "scoreboard", true);
             document.getElementById("scoreboard").replaceWith(new_table);
 
-            var new_dropdown = create_dropdown(players, 'player_dropdown');
+            var new_dropdown = create_dropdown(game.players, 'player_dropdown');
             document.getElementById("player_dropdown").replaceWith(new_dropdown);
+
+            toggle_answer_button_status(game.players);
         });
 
         socket.on('disconnect', function () {
@@ -64,8 +67,8 @@
             stopwatch_reset();
         };
 
-        function reset_buzzers() {
-            socket.emit('host_buzzer_reset');
+        function next_round() {
+            socket.emit('host_next_round');
         };
 
         function host_correct_answer() {
@@ -112,19 +115,19 @@
                 <div class="row mt-5 justify-content-center mx-auto" style="width: 50%;">
 
                     <div class="col-xl-4 d-grid col-3 mx-auto">
-                        <button class="btn btn-success btn-block" onclick="host_correct_answer()">Correct Answer (+10)</button>
+                        <button id="correct_button" class="btn btn-success btn-block" onclick="host_correct_answer()">Correct Answer (+10)</button>
                     </div>
                     
                     <div class="col-xl-4 d-grid col-3 mx-auto">
-                        <button class="btn btn-danger btn-block" onclick="host_wrong_answer()">Wrong Answer (-5)</button>
+                        <button id="wrong_button" class="btn btn-danger btn-block" onclick="host_wrong_answer()">Wrong Answer (-5)</button>
                     </div>
                     <div class="col-xl-4 d-grid col-3 mx-auto">
-                        <button class="btn btn-secondary btn-block" onclick="host_skip_player()">Skip Player</button>
+                        <button id="skip_button" class="btn btn-secondary btn-block" onclick="host_skip_player()">Skip Player</button>
                     </div>
                 </div>
                 <div class="row justify-content-center mt-4">
                     <div class="col-xl-3 d-grid col-3 mx-auto">
-                        <button id="buzzer_reset" class="btn btn-primary btn-block" onclick="reset_buzzers()">Reset Buzzers</button>
+                        <button id="next_round" class="btn btn-primary btn-block" onclick="next_round()">Nexts Round</button>
                     </div>
                 </div>
             </div>
@@ -134,7 +137,7 @@
                 <div class="card mb-5 mx-auto">
                     <div class="card-body">
                         <h3 class="card-title text-center fw-bold">Scoreboard</h5>
-                        <table class="table table-sm card-text mt-4">
+                        <table class="table table-sm card-text table-striped mt-4">
                             <thead>
                                 <tr>
                                     <th scope="col">#</th>
@@ -143,6 +146,7 @@
                                     <th scope="col" data-toggle="tooltip" data-placement="top" title="Wrong answers">&cross;</th>
                                     <th scope="col" data-toggle="tooltip" data-placement="top" title="Bonus points">&starf;</th>
                                     <th scope="col">Total</th>
+                                    <th scope="col" style='width:1%;'></th>
                                 </tr>
                             </thead>
                             <tbody id="scoreboard">
@@ -196,7 +200,7 @@
     </div>
 
     <div class="d-grid col-2 mx-auto my-3">
-        <button id="button_leave" class="btn btn-danger" type="button" style="width: 100%;" onclick="window.location.href = '/'">Leave Game</button>
+        <button id="button_leave" class="btn btn-danger" type="button" onclick="window.location.href = '/'">Leave Game</button>
     </div>
 </body>
 

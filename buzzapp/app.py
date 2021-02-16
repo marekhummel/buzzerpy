@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, session
 from flask_socketio import SocketIO, emit
 from werkzeug.utils import redirect
 
-from helper import host_to_json, playerlist_to_json
 from model.game import BuzzGame, Host, Player, Stopwatch
 
 app = Flask(__name__)
@@ -14,14 +13,12 @@ game = BuzzGame()
 stopwatch = Stopwatch()
 
 
-def send_player_update():
-    playerjson = playerlist_to_json(game.get_players_ordered())
-    socketio.emit('player_update', (playerjson, game.current_player))
+def send_game_update():
+    socketio.emit('game_update', game.toJson())
 
 
 def send_host_update():
-    hostjson = host_to_json(game.host)
-    socketio.emit('host_update', hostjson)
+    socketio.emit('host_update', game.host.__dict__ if game.host else None)
 
 
 # Force update of js files
@@ -76,7 +73,8 @@ def join():
         return redirect('/')
 
     session.pop('index_errors', None)
-    return render_template('join.html', hostname=game.host.name, playername=playername)
+    hname = game.host.name
+    return render_template('join.html', hostname=hname, playername=playername)
 
 
 # ----- SOCKET COMMUNICATION -----
@@ -92,7 +90,7 @@ def game_joined(data):
 
     player = Player(playername)
     game.add_player(player)
-    send_player_update()
+    send_game_update()
 
 
 @socketio.on('game_left')
@@ -100,7 +98,7 @@ def game_left(data):
     playername = data['playername']
     if game.get_player(playername):
         game.remove_player(playername)
-        send_player_update()
+        send_game_update()
 
 
 @socketio.on('game_hosted')
@@ -114,7 +112,7 @@ def game_hosted(data):
     game.set_host(host)
 
     send_host_update()
-    send_player_update()
+    send_game_update()
 
 
 @socketio.on('game_host_left')
@@ -123,7 +121,7 @@ def game_host_left():
 
     game.remove_host()
     send_host_update()
-    send_player_update()
+    send_game_update()
 
 
 @socketio.on('host_stopwatch_action')
@@ -146,7 +144,7 @@ def host_kick_player(data):
     socketio.emit('player_kicked', playername)
     if game.get_player(playername):
         game.remove_player(playername)
-        send_player_update()
+        send_game_update()
 
 
 @socketio.on('buzzer_clicked')
@@ -157,40 +155,29 @@ def buzzer_clicked(data):
     if not player:
         raise LookupError('Player gone')
     player.buzz(stopwatch.elapsed())
-    if game.current_player is None:
-        game.current_player = 0
 
-    send_player_update()
+    send_game_update()
 
 
-@socketio.on('host_buzzer_reset')
-def buzzer_reset():
-    for p in game.players:
-        p.reset_buzzer()
-    game.current_player = None
-
-    send_player_update()
-    socketio.emit('player_buzzer_reset')
+@socketio.on('host_next_round')
+def next_round():
+    game.next_round()
+    send_game_update()
+    socketio.emit('player_next_round')
 
 
 @socketio.on('host_change_score')
 def change_score(data):
     action = data['action']
-    player = None
+    player = game.get_round_player()
 
-    if game.current_player is not None:
-        buzzed_players = [p for p in game.players if p.has_buzzed]
-        if game.current_player < len(buzzed_players):
-            player = game.get_players_ordered()[game.current_player]
-   
     if not player and action != 'bonus':
         return
 
     if action == 'correct':
-        player.correct_answers += 1
+        player.correct_answer()
     elif action == 'wrong':
-        player.wrong_answers += 1
-        game.current_player += 1
+        player.wrong_answer()
     elif action == 'bonus':
         player_name = data['player_name']
         player = game.get_player(player_name)
@@ -200,9 +187,9 @@ def change_score(data):
         points = data['bonus_points']
         player.bonus_points += points
     elif action == 'skip':
-        game.current_player += 1
+        player.round_has_answered = True
 
-    send_player_update()
+    send_game_update()
 
 
 if __name__ == "__main__":

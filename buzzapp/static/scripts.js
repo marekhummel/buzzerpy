@@ -1,96 +1,117 @@
-function create_player_list(array, current_player, id, host) {
-    if (array.length == 0) {
+function create_player_list(game, id) {
+    function new_list() {
         var list = document.createElement('ul');
-        list.className = 'list-group mx-auto';
-        list.style = 'width: 70%;'
+        list.classList.add('list-group', 'mx-auto');
+        list.classList.add('gap-1');
+        list.style = 'width: 55%;';
+        return list;
+    }
 
+    function new_list_item() {
         var item = document.createElement('li');
-        item.className = 'list-group-item list-group-item-secondary';
+        item.classList.add('list-group-item');
+        item.classList.add('border', 'rounded', 'buzzer_list_item');
+        return item;
+    }
 
-        var p = document.createElement('b');
-        p.style = 'font-size: 130%;';
-        p.innerText = "No players joined yet";
-        item.appendChild(p);
+    function new_content() {
+        var content = document.createElement('span');
+        content.classList.add('d-flex', 'justify-content-center');
+        content.style = 'font-size: 110%;';
+        return content;
+    }
+
+
+    if (game.players.length == 0) {
+        var list = new_list();
+
+        var item = new_list_item();
+        item.classList.add('list-group-item-secondary');
+        var content = new_content();
+        content.classList.add('fw-bold');
+        content.innerText = 'No players joined yet';
+        item.appendChild(content);
 
         list.appendChild(item);
 
         var div = document.createElement('div');
-        div.setAttribute("id", id);
+        div.setAttribute('id', id);
         div.appendChild(list);
         return div;
     }
 
 
-    // Sort by buzzer first, then by time
-    // array.sort(function (a, b) { return -(a.has_buzzed - b.has_buzzed) || a.buzz_time - b.buzz_time })
+    var buzz_list = new_list();
+    var non_buzz_list = new_list();
+    var current_guesser_idx = -1;
+    for (var i = 0; i < game.players.length; i++) {
+        var player = game.players[i];
+        var item = new_list_item();
 
-    var buzz_list = document.createElement('ul');
-    buzz_list.className = 'list-group mx-auto';
-    buzz_list.style = 'width: 70%;'
-    var non_buzz_list = document.createElement('ul');
-    non_buzz_list.className = 'list-group mx-auto';
-    non_buzz_list.style = 'width: 70%;'
+        var content = new_content();
+        item.appendChild(content);
 
-    var list = buzz_list;
-
-    for (var i = 0; i < array.length; i++) {
-        var item = document.createElement('li');
-        item.className = 'list-group-item';
-
-        var p = document.createElement('span');
-        p.style = 'font-size: 130%;';
-
-
-        if (host) {
-            var btn = document.createElement('button');
-            btn.className = 'btn btn-sm btn-danger ms-4';
-            btn.style = 'font-size: 90%; float:right;';
-            btn.innerText = 'Kick';
-            const kicked_name = array[i].name;
-            btn.onclick = function () { socket.emit('host_kick_player', { playername: kicked_name }); };
-            item.appendChild(btn);
-        }
-
-        if (array[i].has_buzzed) {
-            var nr = document.createElement('span');
-            nr.innerText = (i + 1) + '.';
-            nr.className = 'me-3';
+        if (player.has_buzzed) {
+            // Name
             var name = document.createElement('span');
-            name.innerText = array[i].name;
-            p.appendChild(nr);
-            p.appendChild(name);
-            if (i == current_player) {
-                item.className += ' list-group-item-success';
-                p.className = 'fw-bold';
-            } else if (i < current_player) {
-                item.className += ' list-group-item-danger';
-            } else {
-                item.className += ' list-group-item-warning';
+            name.innerText = player.name;
+            content.appendChild(name);
+
+            // Coloring
+            if (player.round_has_answered) {
+                console.log(player.name + ' ' + player.round_correct_answer);
+                if (player.round_correct_answer) {
+                    // Correct answer
+                    item.classList.add('list-group-item-success', 'buzzer_list_item_correct');
+                }
+                else if (player.round_correct_answer === false) {
+                    // Wrong answer
+                    item.classList.add('list-group-item-danger', 'buzzer_list_item_wrong');
+                }
+                else {
+                    // Skipped answer
+                    item.classList.add('list-group-item-warning', 'buzzer_list_item_wait');
+                }
+            }
+            else {
+                // Not answered yet
+                if (current_guesser_idx === -1) {
+                    // Current guesser
+                    content.classList.add('fw-bold');
+                    item.classList.add('border-3', 'my-2');
+                    content.style = 'font-size: 200%;';
+                    current_guesser_idx = i;
+                }
+
+                item.classList.add('list-group-item-warning', 'buzzer_list_item_wait');
             }
 
-            list = buzz_list;
-
-            if (array[i].buzz_time_sw) {
+            
+            // Add bagde for stopwatch
+            if (player.buzz_time_sw) {
                 var sw = document.createElement('span');
-                sw.style = 'font-size: 90%; float:right;';
-                sw.className = 'badge bg-secondary mt-1';
-                sw.innerText = array[i].buzz_time_sw;
+                sw.className = 'badge bg-secondary mt-1 buzz_time_badge';
+                sw.innerText = player.buzz_time_sw;
                 item.appendChild(sw);
             }
+
+            buzz_list.appendChild(item);
         }
         else {
-            p.innerText = `${array[i].name}`;
-            item.className += ' list-group-item-secondary';
-            list = non_buzz_list;
-        }
+            content.innerText = `${player.name}`;
+            item.classList.add('list-group-item-secondary', 'buzzer_list_item_stale');
+            non_buzz_list.appendChild(item);
+        }    
 
-        item.appendChild(p);
-        list.appendChild(item);
+        if (current_guesser_idx !== i) {
+            item.classList.add('mx-5');
+        }
     }
 
+    // create entire div
     var div = document.createElement('div');
-    div.className = "d-grid col-12 mx-auto gap-3";
-    div.setAttribute("id", id);
+    div.className = 'd-grid col-12 mx-auto gap-5';
+    div.setAttribute('id', id);
 
     if (buzz_list.childNodes.length > 0)
         div.appendChild(buzz_list);
@@ -99,17 +120,29 @@ function create_player_list(array, current_player, id, host) {
     return div;
 }
 
-function create_scoreboard(players, id) {
+function create_scoreboard(players, id, is_host) {
+    console.log(is_host);
+
+    function create_kick_button(player) {
+        var btn = document.createElement('button');
+        btn.className = 'btn btn-sm btn-danger ms-4 kick_button';
+        btn.innerText = 'Kick';
+        const kicked_name = player;
+        btn.onclick = function () { socket.emit('host_kick_player', { playername: kicked_name }); };
+        return btn;
+    }
+
+
     if (players.length == 0) {
         var tbody = document.createElement('tbody');
-        tbody.setAttribute("id", id);
+        tbody.setAttribute('id', id);
 
         var tr = document.createElement('tr');
 
         var td = document.createElement('td');
         td.className = 'text-center pt-2 pb-4';
         td.setAttribute('colspan', 6);
-        td.innerText = "No players joined yet";
+        td.innerText = 'No players joined yet';
 
         tr.appendChild(td);
         tbody.appendChild(tr);
@@ -121,7 +154,7 @@ function create_scoreboard(players, id) {
     players.sort(cmp_func);
 
     var tbody = document.createElement('tbody');
-    tbody.setAttribute("id", id);
+    tbody.setAttribute('id', id);
     for (var i = 0; i < players.length; i++) {
         var row = document.createElement('tr');
 
@@ -152,6 +185,12 @@ function create_scoreboard(players, id) {
         td_pts.innerHTML = players[i].pts;
         row.appendChild(td_pts);
 
+        if (is_host) {
+            var td_kick = document.createElement('td');
+            td_kick.appendChild(create_kick_button(players[i].name));
+            row.appendChild(td_kick);
+        }
+
         tbody.appendChild(row);
     }
 
@@ -159,10 +198,6 @@ function create_scoreboard(players, id) {
 }
 
 function create_dropdown(players, id) {
-    // <select id="player_dropdown" class="form-select form-select-sm" required>
-    //     <option value="" disabled selected hidden>Select Player</option>
-    // </select>
-
     players.sort(function (a, b) { return -a.name.localeCompare(b.name); });
 
     var select = document.createElement('select');
@@ -171,7 +206,7 @@ function create_dropdown(players, id) {
     select.required = true;
 
     var default_opt = document.createElement('option');
-    default_opt.value = "";
+    default_opt.value = '';
     default_opt.disabled = true;
     default_opt.selected = true;
     default_opt.hidden = true;
@@ -187,4 +222,17 @@ function create_dropdown(players, id) {
     });
 
     return select;
+}
+
+
+function toggle_answer_button_status(players) {
+    var guesser_left = false;
+    for (i = 0; i < players.length; i++) {
+        if (players[i].has_buzzed && !players[i].round_has_answered)
+            guesser_left = true;
+    }
+
+    document.getElementById('correct_button').disabled = !guesser_left;
+    document.getElementById('wrong_button').disabled = !guesser_left;
+    document.getElementById('skip_button').disabled = !guesser_left;
 }

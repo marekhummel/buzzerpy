@@ -16,9 +16,11 @@
         crossorigin="anonymous"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.js"></script>
+
     <script src="{{url_for('static', filename='scripts.js')}}?"></script>
     <script src="{{url_for('static', filename='stopwatch.js')}}?"></script>
-
+    <link href="{{url_for('static', filename='styles.css')}}?" rel="stylesheet"></link>
+    
     <script type="text/javascript" charset="utf-8">       
         var socket = io();
         var buzzer_clicked = false;
@@ -27,7 +29,7 @@
 
         // Connect and disconnect player
         window.onload = function () {
-            socket.emit('game_joined', { playername: name });             
+            socket.emit('game_joined', { playername: name });   
         };
 
         window.onbeforeunload = function () {
@@ -36,11 +38,11 @@
 
 
         // Game update
-        socket.on('player_update', function (players, current_player) {
-            var new_ul = create_player_list(players, current_player, "playerlist", false);
+        socket.on('game_update', function (game) {
+            var new_ul = create_player_list(game, "playerlist");
             document.getElementById("playerlist").replaceWith(new_ul);
 
-            var new_table = create_scoreboard(players, "scoreboard");
+            var new_table = create_scoreboard(game.players, "scoreboard", false);
             document.getElementById("scoreboard").replaceWith(new_table);
         }); 
 
@@ -68,7 +70,7 @@
         });
 
         // Game features
-        socket.on('player_buzzer_reset', function () {
+        socket.on('player_next_round', function () {
             buzzer_clicked = false;
             document.getElementById("buzzer").setAttribute("fill", "#d9534f");
             document.getElementById("buzzed").innerHTML = "BUZZ";
