@@ -5,7 +5,7 @@
     <title>Buzzer.py - Hosted Game</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=0.9">
 
     <!-- Bootstrap -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -17,6 +17,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.js"></script>
 
+    <script src="{{url_for('static', filename='host_scripts.js')}}?"></script>
     <script src="{{url_for('static', filename='scripts.js')}}?"></script>
     <script src="{{url_for('static', filename='stopwatch.js')}}?"></script>
     <link href="{{url_for('static', filename='styles.css')}}?" rel="stylesheet"></link>
@@ -28,74 +29,58 @@
         // Connect / disconnect host
         window.onload = function () {
             socket.emit('game_hosted', { hostname: name });
+            host_change_roundmode_buzzer();
         };
 
         window.onbeforeunload = function () {
             socket.emit('game_host_left');
         };
 
-        // Game update
-        socket.on('game_update', function (game) {
-            var new_ul = create_player_list(game, "playerlist");
-            document.getElementById("playerlist").replaceWith(new_ul);
-            toggle_answer_button_status(game.players);
-
-            var new_scoreboard = create_scoreboard(game.players, "scoreboard", true);
-            document.getElementById("scoreboard").replaceWith(new_scoreboard);
-
-            var new_dropdown = create_dropdown(game.players, 'player_dropdown');
-            document.getElementById("player_dropdown").replaceWith(new_dropdown);
-
-            var new_overview = create_guess_overview(game.players, "guess_overview");
-            document.getElementById("guess_overview").replaceWith(new_overview);
-        });
-
         socket.on('disconnect', function () {
             window.location.href = '/';
         });
 
-        // Locals
-        function host_start_stopwatch() {
-            socket.emit('host_stopwatch_action', { action: 'start' });
-            stopwatch_start();
-        };
+        // Game update
+        socket.on('game_update', function (game) {
+            var new_scoreboard = create_scoreboard(game.players, "scoreboard", true);
+            document.getElementById("scoreboard").replaceWith(new_scoreboard);
 
-        function host_stop_stopwatch() {
-            socket.emit('host_stopwatch_action', { action: 'stop' });
-            stopwatch_stop();
-        };
+            if (game.players.length > 0) {
+                var new_dropdown = create_dropdown(game.players, 'player_dropdown');
+                document.getElementById("player_dropdown").replaceWith(new_dropdown);
+            }
+            else {
+                document.getElementById("player_dropdown").disabled = true;
+            }
 
-        function host_reset_stopwatch() {
-            socket.emit('host_stopwatch_action', { action: 'reset' });
-            stopwatch_reset();
-        };
-
-        function next_round() {
-            socket.emit('host_next_round');
-        };
-
-        function host_correct_answer() {
-            socket.emit('host_change_score', { action: 'correct' });
-        };
-
-        function host_wrong_answer() {
-            socket.emit('host_change_score', { action: 'wrong' });
-        };
-
-        function host_skip_player() {
-            socket.emit('host_change_score', { action: 'skip' });
-        };
-
-        function host_bonus_points() {
-            player = document.getElementById('player_dropdown').value;
-            if (player === "") return;
-
-            bonus_points = parseInt(document.getElementById('bonus_points').value);
-            socket.emit('host_change_score', { player_name: player, action: 'bonus', bonus_points: bonus_points });
-
-            document.getElementById('player_dropdown').selectedIndex = 1;
-            document.getElementById('bonus_points').value = '';
-        };
+            // Scorebuttons
+            var new_scorebuttons = create_scorebuttons(game.players, "scorebuttons");
+            document.getElementById("scorebuttons").replaceWith(new_scorebuttons);
+            switch (game.round_mode) {
+                case 0: // buzzing
+                    var new_ul = create_player_list(game, "playerlist");
+                    document.getElementById("playerlist").replaceWith(new_ul);
+                    break;
+                case 1: // guessing
+                    var new_guess_overview = create_guess_overview(game.players, "guess_overview");
+                    document.getElementById("guess_overview").replaceWith(new_guess_overview);
+                    break;
+                case 2: // stopwatch
+                    var new_sw_overview = create_stopwatch_overview(game.players, "stopwatch_overview");
+                    document.getElementById("stopwatch_overview").replaceWith(new_sw_overview);
+                    break;
+            }
+            
+            // Round mode change card
+            if (game.round_in_progress) {
+                $('#btngrp_roundmode_change input').attr('disabled', 'disabled');
+                $('#btngrp_roundmode_change').attr('title', 'Finish the round to change mode');
+            }
+            else {
+                $('#btngrp_roundmode_change input').removeAttr('disabled');
+                $('#btngrp_roundmode_change').removeAttr('title');
+            }
+        });
 </script>
 </head>
 
@@ -103,16 +88,109 @@
     <div class="container-fluid">
         <div class="row mt-3 mb-5">
             <div class="col-xl">
-                <h1 class="text-center">Hosted Game as "{{ hostname }}"</h1>
+                <h1 class="text-center">Hosted Game as <b>&raquo;{{ hostname }}&laquo;</b></h1>
             </div>
         </div>
 
         <div class="row mt-5">
-            <div class="col-xl-3 ps-3">
-                <div class="card mb-5 mx-auto">
+            <!-- LEFT COLUMN / GAME -->
+            <div class="col-xl-7 px-5 d-flex flex-column my-3">
+                <!-- Container -->
+                <div class="row">
+                    <div id="carousel" class="carousel slide carousel-fade" data-ride="carousel" data-interval="false">
+                        <!-- Buzzer -->
+                        <div id="buzzer_container" class="carousel-item active">
+                            <div class="card mb-5 mx-auto shadow">
+                                <div class="card-body">
+                                    <h2 class="card-title text-center mb-4 fw-bold">Buzzes</h2>
+                                    <div class="row justify-content-center">
+                                        <div class="col-7">
+                                            <div id="playerlist"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Guesses -->
+                        <div id="guessing_container" class="carousel-item">
+                            <div class="card mb-5 shadow">
+                                <div class="card-body">
+                                    <h2 class="card-title text-center fw-bold mb-3">Guesses</h2>
+                                    <table class="table card-text table-striped mt-4">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col" style="width: 35%;">Name</th>
+                                                <th scope="col">Guess</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="guess_overview">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Stopwatch -->
+                        <div id="stopwatch_container" class="carousel-item">
+                            <div class="card shadow">
+                                <div class="card-body">
+                                    <h2 class="card-title text-center fw-bold mb-3">Stopwatch</h2>
+                                    <div class="row">
+                                        <span id="stopwatch" class="text-center text-dark mb-3 fw-bold font-monospace noselect">00:00:00</span>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col">
+                                            <table class="table card-text table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col" style="width: 35%;">Name</th>
+                                                        <th scope="col">Time</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="stopwatch_overview">
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="col-2 d-flex align-items-center">
+                                            <div class="row">
+                                                <div class="col-6 mx-auto">
+                                                    <button id="stopwatch_start" class="btn btn-secondary mb-2 stopwatch_button"
+                                                        onclick="host_start_stopwatch()">Start</button>
+                                                    <button id="stopwatch_stop" class="btn btn-secondary mb-2 stopwatch_button"
+                                                        onclick="host_stop_stopwatch()">Stop</button>
+                                                    <button id="stopwatch_reset" class="btn btn-secondary stopwatch_button"
+                                                        onclick="host_reset_stopwatch()">Reset</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Score buttons -->
+                <div class="row mt-auto">
+                    <div class="card shadow mx-auto p-4">
+                        <div id="scorebuttons"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SEPERATOR -->
+            <div class="col-xl-1">
+                <div class="vline"></div>
+            </div>
+
+            <!-- RIGHT COLUMN / SCOREBOARD + ROUNDMODE + NEXT ROUND -->
+            <div class="col-xl-4 px-5 my-3">
+                <!-- Scoreboard -->
+                <div class="card mb-5 mx-auto shadow">
                     <div class="card-body">
                         <h4 class="card-title text-center fw-bold">Scoreboard</h4>
-                        <table class="table table-sm card-text table-striped mt-4">
+                        <table class="table card-text table-striped mt-4">
                             <thead>
                                 <tr>
                                     <th scope="col">#</th>
@@ -127,7 +205,7 @@
                             <tbody id="scoreboard">
                             </tbody>
                         </table>
-                
+
                         <form id="form_bonus" action="javascript:void(0);">
                             <div class="row">
                                 <div class="col-6">
@@ -145,75 +223,34 @@
                             </div>
                         </form>
                     </div>
-                </div>
-            </div>
-            
-            <div class="col-xl-6 px-5">
-                <div class="card mb-5 mx-auto border border-secondary" style="background-color: #D9D9D9;">
+                </div>        
+                
+                <!-- Next round -->
+                <div class="card mb-5 mx-auto shadow">
                     <div class="card-body">
-                        <h2 class="card-title text-center mb-4 fw-bold">Buzzes</h2>
-                        <div class="row justify-content-center">
-                            <div class="col-xl-9">
-                                <div id="playerlist"></div>
-                            </div>
-                        </div>
-
-                        <div class="row justify-content-center mx-auto px-5 mt-5 pt-5">
-
-                            <div class="col-xl-4 d-grid col-3 mx-auto">
-                                <button id="correct_button" class="btn btn-success btn-block" onclick="host_correct_answer()">Correct Answer (+10)</button>
-                            </div>
-                            
-                            <div class="col-xl-4 d-grid col-3 mx-auto">
-                                <button id="wrong_button" class="btn btn-danger btn-block" onclick="host_wrong_answer()">Wrong Answer (-5)</button>
-                            </div>
-                            <div class="col-xl-4 d-grid col-3 mx-auto">
-                                <button id="skip_button" class="btn btn-secondary btn-block" onclick="host_skip_player()">Skip Player</button>
-                            </div>
-                        </div>
-                        <div class="row justify-content-center my-4">
-                            <div class="col-xl-6 d-grid col-3 mx-auto">
-                                <button id="next_round" class="btn btn-primary btn-block" onclick="next_round()">Next Round</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-3 pe-3">
-                <div class="card mb-5">
-                    <div class="card-body">
-                        <h4 class="card-title text-center fw-bold mb-3">Guesses</h4>
-                        <table class="table table-sm card-text table-striped mt-4">
-                            <thead>
-                                <tr>
-                                    <th scope="col" style="width: 35%;">Name</th>
-                                    <th scope="col">Guess</th>
-                                    <th scope="col" style="width: 1%;"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="guess_overview">
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-center fw-bold mb-3">Stopwatch</h4>
+                        <h4 class="card-title text-center fw-bold">Next Round</h4>
                         <div class="row">
-                            <span id="stopwatch" class="text-center text-dark mb-3 fw-bold font-monospace">00:00:00</span>
+                            <div class="col-9 mx-auto">
+                                <button class="btn btn-lg btn-primary w-100 mt-3" onclick="host_next_round()">Next Round</button>
+                            </div>
                         </div>
-                        <div class="row card-text">
-                            <div class="col-xl-4 d-grid col-3 mx-auto">
-                                <button id="stopwatch_start" class="btn btn-secondary btn-sm" onclick="host_start_stopwatch()">Start</button>
-                            </div>
-                                <div class="col-xl-4 d-grid col-3 mx-auto">
-                                <button id="stopwatch_stop" class="btn btn-secondary btn-sm" onclick="host_stop_stopwatch()">Stop</button>
-                            </div>
-                            <div class="col-xl-4 d-grid col-3 mx-auto">
-                                <button id="stopwatch_reset" class="btn btn-secondary btn-sm" onclick="host_reset_stopwatch()">Reset</button>
-                            </div>
+                    </div>
+                </div>
+
+                <!-- Round mode change -->
+                <div class="card mx-auto shadow">
+                    <div class="card-body">
+                        <h4 class="card-title text-center fw-bold">Change Round Mode</h4>
+
+                        <div id="btngrp_roundmode_change" class="btn-group d-flex mt-4" role="group">
+                            <input type="radio" class="btn-check" name="btnradio" id="radio_buzzer" autocomplete="off" checked onclick="host_change_roundmode_buzzer()">
+                            <label class="btn btn-outline-secondary shadow-none" for="radio_buzzer">Buzzer Round</label>
+
+                            <input type="radio" class="btn-check" name="btnradio" id="radio_guessing" autocomplete="off" onclick="host_change_roundmode_guessing()">
+                            <label class="btn btn-outline-secondary shadow-none" for="radio_guessing">Guessing Round</label>
+
+                            <input type="radio" class="btn-check" name="btnradio" id="radio_stopwatch" autocomplete="off" onclick="host_change_roundmode_stopwatch()">
+                            <label class="btn btn-outline-secondary shadow-none" for="radio_stopwatch">Stopwatch Round</label>
                         </div>
                     </div>
                 </div>
@@ -221,8 +258,8 @@
         </div>
     </div>
 
-    <div class="d-grid col-2 mx-auto">
-        <button id="button_leave" class="btn btn-danger" type="button" onclick="window.location.href = '/'">Leave Game</button>
+    <div class="d-grid col-2 mx-auto mt-5">
+        <button id="button_leave" class="btn btn-danger mt-4 mb-1" type="button" onclick="window.location.href = '/';">Leave Game</button>
     </div>
 </body>
 

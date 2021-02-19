@@ -1,133 +1,4 @@
-function create_player_list(game, id) {
-    function new_list() {
-        var list = document.createElement('ul');
-        list.classList.add('list-group', 'mx-auto');
-        list.classList.add('gap-1');
-        list.style = 'width: 100%;';
-        return list;
-    }
-
-    function new_list_item() {
-        var item = document.createElement('li');
-        item.classList.add('list-group-item');
-        item.classList.add('border', 'rounded', 'buzzer_list_item');
-
-        var row = document.createElement('div');
-        row.classList.add('row');
-        item.appendChild(row);
-
-        var col_left = document.createElement('div');
-        col_left.classList.add('col-2');
-        row.appendChild(col_left);
-
-        var col_middle = document.createElement('div');
-        col_middle.classList.add('col-8');
-        row.appendChild(col_middle);
-
-        var col_right = document.createElement('div');
-        col_right.classList.add('col-2', 'd-flex', 'align-items-center', 'justify-content-end');
-        row.appendChild(col_right);
-
-        var content = document.createElement('span');
-        content.classList.add('d-flex', 'justify-content-center');
-        content.style = 'font-size: 110%;';
-        col_middle.appendChild(content);
-
-        return [item, content, col_right];
-    }
-
-    if (game.players.length == 0) {
-        var list = new_list();
-
-        var [item, content, col_right] = new_list_item();
-        item.classList.add('list-group-item-secondary');
-        content.classList.add('fw-bold');
-        content.innerText = 'No players joined yet';
-
-
-        list.appendChild(item);
-
-        var div = document.createElement('div');
-        div.setAttribute('id', id);
-        div.appendChild(list);
-        return div;
-    }
-
-
-    var buzz_list = new_list();
-    var non_buzz_list = new_list();
-    var current_guesser_idx = -1;
-    for (var i = 0; i < game.players.length; i++) {
-        var player = game.players[i];
-        var [item, content, col_right] = new_list_item();
-
-        if (player.has_buzzed) {
-            // Name
-            var name = document.createElement('span');
-            name.innerText = player.name;
-            content.appendChild(name);
-
-            // Coloring
-            if (player.round_has_answered) {
-                if (player.round_correct_answer) {
-                    // Correct answer
-                    item.classList.add('list-group-item-success', 'buzzer_list_item_correct');
-                }
-                else if (player.round_correct_answer === false) {
-                    // Wrong answer
-                    item.classList.add('list-group-item-danger', 'buzzer_list_item_wrong');
-                }
-                else {
-                    // Skipped answer
-                    item.classList.add('list-group-item-warning', 'buzzer_list_item_wait');
-                }
-            }
-            else {
-                // Not answered yet
-                if (current_guesser_idx === -1) {
-                    // Current guesser
-                    content.classList.add('fw-bold');
-                    item.classList.add('border-3', 'my-2');
-                    content.style = 'font-size: 200%;';
-                    current_guesser_idx = i;
-                }
-
-                item.classList.add('list-group-item-warning', 'buzzer_list_item_wait');
-            }
-
-            
-            // Add bagde for stopwatch
-            if (player.buzz_time_sw) {
-                var sw = document.createElement('span');
-                sw.className = 'badge bg-secondary buzz_time_badge';
-                sw.innerText = player.buzz_time_sw;
-                col_right.appendChild(sw);
-            }
-
-            buzz_list.appendChild(item);
-        }
-        else {
-            content.innerText = `${player.name}`;
-            item.classList.add('list-group-item-secondary', 'buzzer_list_item_stale');
-            non_buzz_list.appendChild(item);
-        }    
-
-        if (current_guesser_idx !== i) {
-            item.classList.add('mx-5');
-        }
-    }
-
-    // create entire div
-    var div = document.createElement('div');
-    div.className = 'd-grid col-12 mx-auto gap-5';
-    div.setAttribute('id', id);
-
-    if (buzz_list.childNodes.length > 0)
-        div.appendChild(buzz_list);
-    if (non_buzz_list.childNodes.length > 0)
-        div.appendChild(non_buzz_list);
-    return div;
-}
+// GENERAL
 
 function create_scoreboard(players, id, is_host) {
     function create_kick_button(player) {
@@ -149,7 +20,7 @@ function create_scoreboard(players, id, is_host) {
         var td = document.createElement('td');
         td.className = 'text-center pt-2 pb-4';
         td.setAttribute('colspan', 7);
-        td.innerText = 'No players joined yet';
+        td.innerText = 'No players have joined yet';
 
         tr.appendChild(td);
         tbody.appendChild(tr);
@@ -204,93 +75,112 @@ function create_scoreboard(players, id, is_host) {
     return tbody;
 }
 
-function create_dropdown(players, id) {
-    players.sort(function (a, b) { return a.name.localeCompare(b.name); });
 
-    var select = document.createElement('select');
-    select.setAttribute('id', id);
-    select.className = 'form-select form-select-sm';
-    select.required = true;
-
-    var default_opt = document.createElement('option');
-    default_opt.value = '';
-    default_opt.disabled = true;
-    default_opt.selected = true;
-    default_opt.hidden = true;
-    default_opt.innerText = 'Select Player';
-    select.append(default_opt);
-
-    players.forEach(p => {
-        var option = document.createElement('option');
-        option.value = p.name;
-        option.innerText = p.name;
-
-        select.appendChild(option);
-    });
-
-    return select;
-}
-
-
-function toggle_answer_button_status(players) {
-    var guesser_left = false;
-    for (i = 0; i < players.length; i++) {
-        if (players[i].has_buzzed && !players[i].round_has_answered)
-            guesser_left = true;
+// BUZZING ROUND
+function create_player_list(game, id) {
+    function new_list() {
+        var list = document.createElement('ul');
+        list.classList.add('list-group', 'mx-auto');
+        list.classList.add('gap-1');
+        list.style = 'width: 100%;';
+        return list;
     }
 
-    document.getElementById('correct_button').disabled = !guesser_left;
-    document.getElementById('wrong_button').disabled = !guesser_left;
-    document.getElementById('skip_button').disabled = !guesser_left;
-}
+    function new_list_item() {
+        var item = document.createElement('li');
+        item.classList.add('list-group-item');
+        item.classList.add('border', 'rounded', 'buzzer_list_item');
 
+        var content = document.createElement('span');
+        content.classList.add('d-flex', 'justify-content-center');
+        content.style = 'font-size: 110%;';
+        item.appendChild(content);
 
-function create_guess_overview(players, id) {
-    if (players.length == 0) {
-        var tbody = document.createElement('tbody');
-        tbody.setAttribute('id', id);
-
-        var tr = document.createElement('tr');
-
-        var td = document.createElement('td');
-        td.className = 'text-center pt-2 pb-4';
-        td.setAttribute('colspan', 3);
-        td.innerText = 'No players joined yet';
-
-        tr.appendChild(td);
-        tbody.appendChild(tr);
-        return tbody;
+        return [item, content];
     }
 
-    // Sort by pts, correct, wrong, bonus, name
-    players.sort(function (a, b) { return a.name.localeCompare(b.name); });
+    if (game.players.length == 0) {
+        var list = new_list();
 
-    var tbody = document.createElement('tbody');
-    tbody.setAttribute('id', id);
-    for (var i = 0; i < players.length; i++) {
-        var row = document.createElement('tr');
+        var [item, content] = new_list_item();
+        item.classList.add('list-group-item-secondary');
+        content.classList.add('fw-bold');
+        content.innerText = 'No players have joined yet';
 
-        var td_name = document.createElement('td');
-        td_name.innerHTML = players[i].name;
-        row.appendChild(td_name);
 
-        var td_guess = document.createElement('td');
-        td_guess.innerHTML = players[i].round_guess ?? '';
-        row.appendChild(td_guess);
+        list.appendChild(item);
 
-        var td_correct = document.createElement('td');
-        var btn = document.createElement('button');
-        btn.className = 'btn btn-sm btn-success ms-4';
-        btn.style = 'font-size: 70%;';
-        btn.innerHTML = '&check;';
-        const player_name = players[i].name;
-        btn.onclick = function () { socket.emit('host_change_score', { player_name: player_name, action: 'correct' });};
-        btn.disabled = players[i].round_has_answered || !players[i].round_guess;
-        td_correct.appendChild(btn);
-        row.appendChild(td_correct);
-
-        tbody.appendChild(row);
+        var div = document.createElement('div');
+        div.setAttribute('id', id);
+        div.appendChild(list);
+        return div;
     }
 
-    return tbody;
+    var buzz_list = new_list();
+    var non_buzz_list = new_list();
+    var current_guesser_idx = -1;
+    for (var i = 0; i < game.players.length; i++) {
+        var player = game.players[i];
+        var [item, content] = new_list_item();
+
+        if (player.buzzer_has_buzzed) {
+            // Name
+            var name = document.createElement('span');
+            name.classList.add('noselect');
+            name.innerText = player.name;
+            content.appendChild(name);
+
+            // Coloring
+            if (player.round_has_received_pts) {
+                if (player.round_correct_answer) {
+                    // Correct answer
+                    item.classList.add('list-group-item-success', 'buzzer_list_item_correct');
+                }
+                else if (player.round_correct_answer === false) {
+                    // Wrong answer
+                    item.classList.add('list-group-item-danger', 'buzzer_list_item_wrong');
+                }
+                else {
+                    // Skipped answer
+                    item.classList.add('list-group-item-warning', 'buzzer_list_item_wait');
+                }
+            }
+            else {
+                // Not answered yet
+                if (current_guesser_idx === -1) {
+                    // Current guesser
+                    content.classList.add('fw-bold');
+                    item.classList.add('border-3', 'my-2');
+                    item.style = 'width: 120%; margin-left: -10% !important;';
+                    content.style = 'font-size: 200%;';
+                    
+                    current_guesser_idx = i;
+                }
+
+                item.classList.add('list-group-item-warning', 'buzzer_list_item_wait');
+            }
+
+            buzz_list.appendChild(item);
+        }
+        else {
+            content.innerText = `${player.name}`;
+            item.classList.add('list-group-item-secondary', 'buzzer_list_item_stale', 'noselect');
+            non_buzz_list.appendChild(item);
+        }
+
+        if (current_guesser_idx !== i) {
+            item.classList.add('mx-5');
+        }
+    }
+
+    // create entire div
+    var div = document.createElement('div');
+    div.className = 'd-grid col-12 mx-auto gap-5 my-auto';
+    div.setAttribute('id', id);
+
+    if (buzz_list.childNodes.length > 0)
+        div.appendChild(buzz_list);
+    if (non_buzz_list.childNodes.length > 0)
+        div.appendChild(non_buzz_list);
+    return div;
 }

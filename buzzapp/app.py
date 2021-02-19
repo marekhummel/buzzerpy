@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, session
 from flask_socketio import SocketIO, emit
 from werkzeug.utils import redirect
 
-from model.game import BuzzGame, Host, Player, Stopwatch
+from model.game import BuzzGame, Host, Player, Stopwatch, RoundMode
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'jh324j2p948vn2mv50ü'
@@ -127,7 +127,57 @@ def game_host_left():
     send_game_update()
 
 
-# -- Stopwatch --
+# -- Host Actions --
+
+
+@socketio.on('host_kick_player')
+def host_kick_player(data):
+    playername = data['playername']
+    socketio.emit('player_kicked', playername)
+    if game.get_player(playername):
+        game.remove_player(playername)
+        send_game_update()
+
+
+@socketio.on('host_change_roundmode')
+def host_change_roundmode(data):
+    gm = data['gamemode']
+    if gm == 'buzzer':
+        game.round_mode = RoundMode.Buzzer
+    elif gm == 'guessing':
+        game.round_mode = RoundMode.Guessing
+    elif gm == 'stopwatch':
+        game.round_mode = RoundMode.Stopwatch
+    send_game_update()
+
+
+@socketio.on('host_next_round')
+def host_next_round():
+    game.next_round()
+    send_game_update()
+    socketio.emit('player_next_round')
+
+
+@socketio.on('host_change_score')
+def host_change_score(data):
+    player_name = data['player_name']
+    player = game.get_player(player_name)
+    if not player:
+        return
+
+    action = data['action']
+    if action == 'correct':
+        player.correct_answer()
+    elif action == 'wrong':
+        player.wrong_answer()
+    elif action == 'skip':
+        player.round_has_received_pts = True
+    elif action == 'bonus':
+        points = data['bonus_points']
+        player.bonus_points += points
+
+    send_game_update()
+
 
 @socketio.on('host_stopwatch_action')
 def host_start_stopwatch(data):
@@ -143,76 +193,49 @@ def host_start_stopwatch(data):
     socketio.emit('stopwatch_action', action)
 
 
-@socketio.on('host_kick_player')
-def host_kick_player(data):
-    playername = data['playername']
-    socketio.emit('player_kicked', playername)
-    if game.get_player(playername):
-        game.remove_player(playername)
-        send_game_update()
+# -- Player Actions --
 
-
-@socketio.on('buzzer_clicked')
+@socketio.on('player_buzzer_click')
 def buzzer_clicked(data):
     playername = data['playername']
     player = game.get_player(playername)
 
     if not player:
         raise LookupError('Player gone')
-    player.buzz(stopwatch.elapsed())
 
+    player.buzz()
+    game.round_in_progress = True
     send_game_update()
 
 
-# -- Misc --
-
-@socketio.on('guess_locked_in')
-def guess_locked_in(data):
+@socketio.on('player_stopwatch_stop')
+def player_stopwatch_stop(data):
     playername = data['playername']
     player = game.get_player(playername)
 
     if not player:
         raise LookupError('Player gone')
 
-    if not player.round_guess:
-        player.round_guess = data['guess']
+    player.stop_stopwatch(stopwatch.elapsed())
+    game.round_in_progress = True
+    send_game_update()
+
+
+@socketio.on('player_guess_lockin')
+def player_guess_lockin(data):
+    playername = data['playername']
+    player = game.get_player(playername)
+
+    if not player:
+        raise LookupError('Player gone')
+
+    if not player.guessing_text:
+        player.set_guess(data['guess'])
+        game.round_in_progress = True
         send_game_update()
 
 
-@socketio.on('host_next_round')
-def next_round():
-    game.next_round()
-    send_game_update()
-    socketio.emit('player_next_round')
-
-
-@socketio.on('host_change_score')
-def change_score(data):
-    action = data['action']
-    player = game.get_round_player()
-
-    if player:
-        if action == 'correct':
-            player.correct_answer()
-        elif action == 'wrong':
-            player.wrong_answer()
-        elif action == 'skip':
-            player.round_has_answered = True
-
-    else:
-        player_name = data['player_name']
-        player = game.get_player(player_name)
-        if not player:
-            return
-
-        if action == 'correct':
-            player.correct_answer()
-        elif action == 'bonus':
-            points = data['bonus_points']
-            player.bonus_points += points
-
-    send_game_update()
-
+# ------ MAIN --------
 
 if __name__ == "__main__":
     socketio.run(app, debug=True)

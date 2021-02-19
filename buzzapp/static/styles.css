@@ -1,10 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Reggae+One&display=swap');
+
+html {
+    font-size: 14px;
+}
+
+body {
+    font-family: 'Reggae One', sans-serif !important;
+}
+
 .kick_button {
     font-size: 70%; 
     float: right;
-}
-
-.buzz_time_badge {
-    font-size: 75%; 
 }
 
 #button_leave {
@@ -32,6 +38,43 @@
 }
 
 #stopwatch {
-    font-size:400% !important;
+    font-size:600% !important;
 }
 
+.noselect {
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
+}
+
+.vline {
+  border-left: 2px solid #666;
+  height: 100%;
+  position: relative;
+  left: 50%;
+  margin-left: -1px;
+  top: 0;
+}
+
+.stopwatch_button {
+    width: 150%; 
+    margin-left: -25% !important;
+}
+
+#buzzer { 
+    width: 350px; 
+    height: 350px; 
+    border: 3px solid rgb(156, 39, 39) !important;
+    border-radius: 100%; 
+    font-size: 44px; 
+    text-align: center; 
+} 
+
+#buzzer:disabled { 
+    border: 3px solid rgb(1, 90, 27) !important;
+} 
+
+#btngrp_roundmode_change input {
+    outline: none !important; 
+    box-shadow: none;
+}

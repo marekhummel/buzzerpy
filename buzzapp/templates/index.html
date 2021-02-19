@@ -11,13 +11,15 @@
 
     <title>Buzzer.py</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link href="{{url_for('static', filename='styles.css')}}?" rel="stylesheet"></link>
+    </link>
 </head>
 
 <body>
     <div class="container-fluid">
         <div class="row my-5">
             <div class="col">
-                <h1 class="text-center">Buzz Game</h1>
+                <h1 class="text-center">Buzzer.py</h1>
             </div>
         </div>
 
@@ -25,7 +27,7 @@
             <div class="col-xl-4 my-5">
                 <form action="">
                     <div class="form-group">
-                        <input class="form-control form-control-lg" id="name" name="name" placeholder="Your Name">
+                        <input class="form-control form-control-lg text-center" id="name" name="name" placeholder="Your Name" autofocus autocomplete="off" required>
                     </div>
         
                     <div class="row justify-content-center my-4">
