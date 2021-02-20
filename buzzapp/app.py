@@ -13,8 +13,8 @@ game = BuzzGame()
 stopwatch = Stopwatch()
 
 
-def send_game_update():
-    socketio.emit('game_update', game.toJson())
+def send_game_update(host_only=False):
+    socketio.emit('game_update', (game.toJson(), host_only))
 
 
 def send_host_update():
@@ -193,6 +193,18 @@ def host_start_stopwatch(data):
     socketio.emit('stopwatch_action', action)
 
 
+@socketio.on('host_guess_column_change')
+def host_guess_column_change(data):
+    action = data['action']
+
+    if action == 'add':
+        game.guessing_amount += 1
+    elif action == 'remove':
+        game.guessing_amount -= 1
+
+    send_game_update()
+
+
 # -- Player Actions --
 
 @socketio.on('player_buzzer_click')
@@ -208,6 +220,20 @@ def buzzer_clicked(data):
     send_game_update()
 
 
+@socketio.on('player_guess_lockin')
+def player_guess_lockin(data):
+    playername = data['playername']
+    player = game.get_player(playername)
+
+    if not player:
+        raise LookupError('Player gone')
+
+    if not player.guessing_list:
+        player.set_guesses(data['guesses'])
+        game.round_in_progress = True
+        send_game_update(True)
+
+
 @socketio.on('player_stopwatch_stop')
 def player_stopwatch_stop(data):
     playername = data['playername']
@@ -218,21 +244,8 @@ def player_stopwatch_stop(data):
 
     player.stop_stopwatch(stopwatch.elapsed())
     game.round_in_progress = True
-    send_game_update()
+    send_game_update(True)
 
-
-@socketio.on('player_guess_lockin')
-def player_guess_lockin(data):
-    playername = data['playername']
-    player = game.get_player(playername)
-
-    if not player:
-        raise LookupError('Player gone')
-
-    if not player.guessing_text:
-        player.set_guess(data['guess'])
-        game.round_in_progress = True
-        send_game_update()
 
 
 # ------ MAIN --------

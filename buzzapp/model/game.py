@@ -24,7 +24,7 @@ class Player():
     buzzer_has_buzzed: bool
     buzzer_time: Optional[float]
     stopwatch_time: Optional[float]
-    guessing_text: Optional[str]
+    guessing_list: List[str]
     round_has_received_pts: bool
     round_correct_answer: bool
     correct_answers: int
@@ -49,8 +49,8 @@ class Player():
     def stop_stopwatch(self, clock: Optional[float]):
         self.stopwatch_time = clock if clock else 0
 
-    def set_guess(self, guess: str):
-        self.guessing_text = guess
+    def set_guesses(self, guesses: List[str]):
+        self.guessing_list = guesses
 
     # ** Scores
 
@@ -70,7 +70,7 @@ class Player():
         self.buzzer_has_buzzed = False
         self.buzzer_time = None
         self.stopwatch_time = None
-        self.guessing_text = None
+        self.guessing_list = None
         self.round_has_received_pts = False
         self.round_correct_answer = None
 
@@ -87,12 +87,14 @@ class BuzzGame():
     players: List[Player]
     round_mode: RoundMode
     round_in_progress: bool
+    guessing_amount: int
 
     def __init__(self):
         self.host = None
         self.players = []
         self.round_mode = RoundMode.Buzzer
         self.round_in_progress = False
+        self.guessing_amount = 1
 
     def set_host(self, host: Host):
         self.host = host
@@ -124,7 +126,8 @@ class BuzzGame():
         return {'host': self.host.toJson() if self.host else None,
                 'players': [p.toJson() for p in self.players],
                 'round_mode': self.round_mode,
-                'round_in_progress': self.round_in_progress}
+                'round_in_progress': self.round_in_progress,
+                'guessing_amount': self.guessing_amount}
 
 
 class Stopwatch():

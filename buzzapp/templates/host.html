@@ -22,6 +22,11 @@
     <script src="{{url_for('static', filename='stopwatch.js')}}?"></script>
     <link href="{{url_for('static', filename='styles.css')}}?" rel="stylesheet"></link>
 
+    <script src="../static/host_scripts.js"></script>
+    <script src="../static/scripts.js"></script>
+    <link href="../static/styles.css" rel="stylesheet">
+    </link>
+
     <script type="text/javascript" charset="utf-8">
         var socket = io();
         var name = "{{ hostname }}";
@@ -30,7 +35,6 @@
         window.onload = function () {
             socket.emit('game_hosted', { hostname: name });
             host_change_roundmode_buzzer();
-            $('#carousel').carousel('pause');
         };
 
         window.onbeforeunload = function () {
@@ -42,7 +46,7 @@
         });
 
         // Game update
-        socket.on('game_update', function (game) {
+        socket.on('game_update', function (game, host_only) {
             var new_scoreboard = create_scoreboard(game.players, "scoreboard", true);
             document.getElementById("scoreboard").replaceWith(new_scoreboard);
 
@@ -65,8 +69,14 @@
                     document.getElementById("playerlist").replaceWith(new_ul);
                     break;
                 case 1: // guessing
-                    var new_guess_overview = create_guess_overview(game.players, "guess_overview");
+                    var new_guess_overview_head = create_guess_overview_head(game.guessing_amount, "guess_overview_head");
+                    document.getElementById("guess_overview_head").replaceWith(new_guess_overview_head);
+
+                    var new_guess_overview = create_guess_overview(game.players, game.guessing_amount, "guess_overview");
                     document.getElementById("guess_overview").replaceWith(new_guess_overview);
+
+                    document.getElementById("btn_guess_add_col").disabled = (game.round_in_progress || game.guessing_amount == 10);
+                    document.getElementById("btn_guess_remove_col").disabled = (game.round_in_progress || game.guessing_amount == 1);
                     break;
                 case 2: // stopwatch
                     var new_sw_overview = create_stopwatch_overview(game.players, "stopwatch_overview");
@@ -100,7 +110,7 @@
             <div class="col-xl-7 px-5 d-flex flex-column my-3">
                 <!-- Container -->
                 <div class="row">
-                    <div id="carousel" class="carousel slide carousel-fade" data-interval="false">
+                    <div id="carousel" class="carousel slide carousel-fade" data-bs-interval="false">
                         <!-- Buzzer -->
                         <div id="buzzer_container" class="carousel-item active">
                             <div class="card mb-5 mx-auto shadow">
@@ -120,8 +130,16 @@
                             <div class="card mb-5 shadow">
                                 <div class="card-body">
                                     <h2 class="card-title text-center fw-bold mb-3">Guesses</h2>
+                                    <div class="d-flex flex-row justify-content-end my-4">
+                                        <div class="col-2 mx-2">
+                                            <button id="btn_guess_add_col" class="btn btn-secondary btn-sm w-100" onclick="host_add_guess_column()">Add Column</button>
+                                        </div>
+                                        <div class="col-2 mx-2">
+                                            <button id="btn_guess_remove_col" class="btn btn-secondary btn-sm w-100" onclick="host_remove_guess_column()">Remove Column</button>
+                                        </div>
+                                    </div>
                                     <table class="table card-text table-striped mt-4" style="table-layout: fixed;">
-                                        <thead>
+                                        <thead id="guess_overview_head">
                                             <tr>
                                                 <th scope="col" style="width: 30%;">Name</th>
                                                 <th scope="col">Guess</th>

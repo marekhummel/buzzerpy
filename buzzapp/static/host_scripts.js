@@ -103,7 +103,8 @@ function create_scorebuttons(players, id) {
         }
         input_group.appendChild(name);
 
-        var disabled = player.round_has_received_pts || (!player.buzzer_has_buzzed && !player.guessing_text && player.stopwatch_time === null);
+        console.log(player.guessing_list);
+        var disabled = player.round_has_received_pts || (!player.buzzer_has_buzzed && !player.guessing_list && player.stopwatch_time === null);
         var btn_correct = create_button('&check;', 'btn-success', 'Correct answer', disabled, () => host_correct_answer(player_name));
         var btn_wrong = create_button('&cross;', 'btn-danger', 'Wrong answer', disabled, () => host_wrong_answer(player_name));
         var btn_skip = create_button('&#9711;', 'btn-secondary', 'Skip player', disabled, () => host_skip_player(player_name));
@@ -116,7 +117,7 @@ function create_scorebuttons(players, id) {
 }
 
 // GUESSING ROUND
-function create_guess_overview(players, id) {
+function create_guess_overview(players, cols, id) {
     if (players.length == 0) {
         var tbody = document.createElement('tbody');
         tbody.setAttribute('id', id);
@@ -126,7 +127,7 @@ function create_guess_overview(players, id) {
         var td = document.createElement('td');
         td.className = 'text-center pt-2 pb-4';
         td.style = "white-space: normal !important; wor -wrap: break-word;";
-        td.setAttribute('colspan', 2);
+        td.setAttribute('colspan', cols+1);
         td.innerText = 'No players have joined yet';
 
         tr.appendChild(td);
@@ -146,14 +147,41 @@ function create_guess_overview(players, id) {
         td_name.innerHTML = sorted_players[i].name;
         row.appendChild(td_name);
 
-        var td_guess = document.createElement('td');
-        td_guess.innerHTML = sorted_players[i].guessing_text ?? '';
-        row.appendChild(td_guess);
+        for (j = 0; j < cols; j++) {
+            var td_guess = document.createElement('td');
+            td_guess.innerHTML = sorted_players[i].guessing_list?.[j] ?? '';
+            row.appendChild(td_guess);
+        }
+
 
         tbody.appendChild(row);
     }
 
     return tbody;
+}
+
+function create_guess_overview_head(cols, id) {
+    var thead = document.createElement('thead');
+    thead.setAttribute('id', id);
+
+    var tr = document.createElement('tr');
+    thead.appendChild(tr);
+
+    var namecol = document.createElement('th');
+    namecol.setAttribute('scope', 'col');
+    namecol.style = 'width: 25%;';
+    namecol.innerText = 'Name';
+    tr.appendChild(namecol);
+
+    for (i = 0; i < cols; i++) {
+        var guesscol = document.createElement('th');
+        guesscol.setAttribute('scope', 'col');
+        guesscol.innerText = 'Guess';
+        if (cols > 1) guesscol.innerText += ' #' + (i+1);
+        tr.appendChild(guesscol);
+    }    
+
+    return thead;
 }
 
 // STOPWATCH ROUND
@@ -234,19 +262,24 @@ function host_next_round() {
 function host_change_roundmode_buzzer() {
     socket.emit('host_change_roundmode', { gamemode: 'buzzer' });
     $('#carousel').carousel(0);
-    $('#carousel').carousel('pause');
 }
 
 function host_change_roundmode_guessing() {
     socket.emit('host_change_roundmode', { gamemode: 'guessing' });
     $('#carousel').carousel(1);
-    $('#carousel').carousel('pause');
 }
 
 function host_change_roundmode_stopwatch() {
     socket.emit('host_change_roundmode', { gamemode: 'stopwatch' });
     $('#carousel').carousel(2);
-    $('#carousel').carousel('pause');
+}
+
+function host_add_guess_column() {
+    socket.emit('host_guess_column_change', { action: 'add' });
+}
+
+function host_remove_guess_column() {
+    socket.emit('host_guess_column_change', { action: 'remove' });
 }
 
 function host_start_stopwatch() {

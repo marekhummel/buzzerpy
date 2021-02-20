@@ -17,9 +17,15 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.js"></script>
 
+    <script src="{{url_for('static', filename='join_scripts.js')}}?"></script>
     <script src="{{url_for('static', filename='scripts.js')}}?"></script>
     <script src="{{url_for('static', filename='stopwatch.js')}}?"></script>
     <link href="{{url_for('static', filename='styles.css')}}?" rel="stylesheet">
+    </link>
+
+    <script src="../static/join_scripts.js"></script>
+    <script src="../static/scripts.js"></script>
+    <link href="../static/styles.css" rel="stylesheet">
     </link>
 
     <script type="text/javascript" charset="utf-8">
@@ -27,11 +33,11 @@
         var name = "{{ playername }}";
         var closing_timer;
         var round_mode = 0;
+        var guesses = 0;
 
         // Connect / disconnect
         window.onload = function () {
             socket.emit('game_joined', { playername: name }); 
-            $('.carousel').carousel('pause');
         };
 
         window.onbeforeunload = function () {
@@ -49,17 +55,25 @@
 
 
         // Game update
-        socket.on('game_update', function (game) {
+        socket.on('game_update', function (game, host_only) {
             var new_scoreboard = create_scoreboard(game.players, "scoreboard", false);
             document.getElementById("scoreboard").replaceWith(new_scoreboard);
 
             round_mode = game.round_mode;    
-            if (game.round_mode == 0) {
-                var new_ul = create_player_list(game, "playerlist");
-                document.getElementById("playerlist").replaceWith(new_ul);
+            switch (round_mode) {
+                case 0:
+                    var new_ul = create_player_list(game, "playerlist");
+                    document.getElementById("playerlist").replaceWith(new_ul);
+                    break;
+                case 1:
+                    if (!host_only) {
+                        var new_guessing_input = create_guessing_input(game.guessing_amount, "guessing_inputs");
+                        document.getElementById("guessing_inputs").replaceWith(new_guessing_input);
+                        guesses = game.guessing_amount;
+                    }
+                    break;
             }
             $('.carousel').carousel(round_mode);
-            $('.carousel').carousel('pause');
         });
 
         socket.on('host_update', function (host) {
@@ -85,8 +99,7 @@
             document.getElementById("buzzer").disabled = false;
             document.getElementById("buzzer").classList.replace('btn-success', 'btn-danger');
             document.getElementById("buzzer").innerText = 'BUZZ';
-            document.getElementById('input_guess').value = '';
-            document.getElementById('input_guess').disabled = false;
+            $('#guessing_inputs input').each(function () { $(this).prop('disabled', false).val(''); });
             document.getElementById('btn_lock_guess').innerText = 'Lock In';
             document.getElementById('btn_lock_guess').disabled = false;
             document.getElementById('btn_stopwatch_stop').innerText = 'Stop'
@@ -108,6 +121,22 @@
             };
         })
 
+        document.addEventListener('keydown', function (event) {
+            if (event.keyCode == 32) { // Space / Enter 13 ?
+                switch (round_mode) {
+                    case 0:
+                        document.getElementById('buzzer').click();
+                        break;
+                    case 1:
+                        document.getElementById('btn_lock_guess').click();
+                        break;
+                    case 2:
+                        document.getElementById('btn_stopwatch_stop').click();
+                        break;
+                }
+            }
+        });
+
         // Locals
         function send_click() {
             if (!document.getElementById('buzzer').disabled) {
@@ -115,48 +144,25 @@
                 document.getElementById('buzzer').disabled = true;
                 document.getElementById('buzzer').classList.replace('btn-danger', 'btn-success');
                 document.getElementById('buzzer').innerText = 'BUZZED';
-                document.getElementById('input_guess').disabled = true;
-                document.getElementById('input_guess').value = '';
-                document.getElementById('btn_lock_guess').disabled = true;
-                document.getElementById('btn_lock_guess').innerText = 'Locked';
-                document.getElementById('btn_stopwatch_stop').disabled = true;
-                document.getElementById('btn_stopwatch_stop').innerText = 'Stopped';
             };
         };
 
         function lock_in_guess() {
-            var guess = document.getElementById('input_guess').value;
-            socket.emit('player_guess_lockin', { playername: name, guess: guess });
-            document.getElementById('input_guess').disabled = true;
+            var inputs = $('#guessing_inputs input');
+            var guesses = inputs.map(function () { return $(this).val(); }).get();
+            socket.emit('player_guess_lockin', { playername: name, guesses: guesses });
+
+            inputs.each(function () { $(this).prop('disabled', true); });
             document.getElementById('btn_lock_guess').disabled = true;
             document.getElementById('btn_lock_guess').innerText = 'Locked';
-            document.getElementById('btn_stopwatch_stop').disabled = true;
-            document.getElementById('btn_stopwatch_stop').innerText = 'Stopped';
         };
 
         function player_stopwatch_stop() {
             socket.emit('player_stopwatch_stop', { playername: name });
-            document.getElementById('input_guess').disabled = true;
-            document.getElementById('input_guess').value = '';
-            document.getElementById('btn_lock_guess').disabled = true;
-            document.getElementById('btn_lock_guess').innerText = 'Locked';
             document.getElementById('btn_stopwatch_stop').disabled = true;
             var time = document.getElementById('stopwatch').innerText;
             document.getElementById('btn_stopwatch_stop').innerText = 'Stopped at ' + time;
         }
-
-        document.addEventListener('keydown', function (event) {
-            if (event.keyCode == 32) { // Space
-                switch (round_mode) {
-                    case 0:
-                        send_click();
-                        break;
-                    case 2:
-                        player_stopwatch_stop();
-                        break;
-                }
-            }
-        });
     </script>
 </head>
 
@@ -178,7 +184,7 @@
             <div class="col-xl-7 px-5 d-flex flex-column my-3">
                 <!-- Container -->
                 <div class="row">
-                    <div id="carousel" class="carousel slide carousel-fade" data-interval="false">
+                    <div id="carousel" class="carousel slide carousel-fade" data-bs-interval="false">
                         <!-- Buzzer -->
                         <div id="buzzer_container" class="carousel-item active">
                             <div class="card mx-auto shadow">
@@ -202,10 +208,11 @@
                         <div id="guessing_container" class="carousel-item">
                             <div class="card mb-5 shadow">
                                 <div class="card-body">
-                                    <h2 class="card-title text-center fw-bold mb-5">Guess</h2>
+                                    <h2 class="card-title text-center fw-bold mb-5">Guesses</h2>
                                     <form action="javascript:void(0);">
                                         <div class="col-8 mx-auto input-group-lg mb-3">
-                                            <input id="input_guess" class="form-control text-center" autocomplete="off" placeholder="Your Guess"></input>
+                                            <div id="guessing_inputs">
+                                            </div>
                                         </div>
                                         <div class="col-4 mx-auto">
                                             <button id="btn_lock_guess" type="submit" class="btn btn-secondary btn-lg w-100"
