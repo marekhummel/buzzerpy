@@ -133,9 +133,6 @@
                     case 0:
                         document.getElementById('buzzer').click();
                         break;
-                    case 1:
-                        document.getElementById('btn_lock_guess').click();
-                        break;
                     case 2:
                         document.getElementById('btn_stopwatch_stop').click();
                         break;
@@ -209,19 +206,17 @@
 
                         <!-- Guesses -->
                         <div id="guessing_container" class="carousel-item">
-                            <div class="card mb-5 shadow">
+                            <div class="card shadow">
                                 <div class="card-body">
                                     <h2 class="card-title text-center fw-bold mb-5">Guesses</h2>
-                                    <form action="javascript:void(0);">
-                                        <div class="col-8 mx-auto input-group-lg mb-3">
-                                            <div id="guessing_inputs">
-                                            </div>
+                                    <div class="col-8 mx-auto input-group-lg mb-3">
+                                        <div id="guessing_inputs">
                                         </div>
-                                        <div class="col-4 mx-auto">
-                                            <button id="btn_lock_guess" type="submit" class="btn btn-secondary btn-lg w-100"
-                                                onclick="lock_in_guess()">Lock In</button>
-                                        </div>
-                                    </form>
+                                    </div>
+                                    <div class="col-4 mx-auto">
+                                        <button id="btn_lock_guess" type="submit" class="btn btn-secondary btn-lg w-100"
+                                            onclick="lock_in_guess()">Lock In</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

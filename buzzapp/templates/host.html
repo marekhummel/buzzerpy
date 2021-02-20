@@ -219,7 +219,7 @@
                 </div>
 
                 <!-- Score buttons -->
-                <div class="row mt-auto">
+                <div class="row mt-auto px-2">
                     <div class="card shadow mx-auto p-4">
                         <div id="scorebuttons"></div>
                     </div>
@@ -253,22 +253,20 @@
                             </tbody>
                         </table>
 
-                        <form id="form_bonus" action="javascript:void(0);">
-                            <div class="row">
-                                <div class="col-6">
-                                    <select id="player_dropdown" class="form-select form-select-sm" required></select>
-                                </div>
-                                <div class="col-3">
-                                    <div class="input-group input-group-sm">
-                                        <input id="bonus_points" type="number" class="form-control" aria-label="Points"
-                                            aria-describedby="inputGroup-sizing-sm" placeholder="0">
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <button class="btn btn-secondary btn-sm w-100" onclick="host_bonus_points()">Add Points</button>
+                        <div class="row">
+                            <div class="col-6">
+                                <select id="player_dropdown" class="form-select form-select-sm" required></select>
+                            </div>
+                            <div class="col-3">
+                                <div class="input-group input-group-sm">
+                                    <input id="bonus_points" type="number" class="form-control" aria-label="Points"
+                                        aria-describedby="inputGroup-sizing-sm" placeholder="0">
                                 </div>
                             </div>
-                        </form>
+                            <div class="col-3">
+                                <button class="btn btn-secondary btn-sm w-100" onclick="host_bonus_points()">Add Points</button>
+                            </div>
+                        </div>
                     </div>
                 </div>        
                 
