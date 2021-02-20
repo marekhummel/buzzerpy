@@ -113,7 +113,7 @@ function create_player_list(game, id) {
         var div = document.createElement('div');
         div.setAttribute('id', id);
         div.appendChild(list);
-        return div;
+        return [div, null];
     }
 
     var sorted_players = game.players.slice().sort((a, b) => a.buzzer_time - b.buzzer_time);
@@ -183,5 +183,5 @@ function create_player_list(game, id) {
         div.appendChild(buzz_list);
     if (non_buzz_list.childNodes.length > 0)
         div.appendChild(non_buzz_list);
-    return div;
+    return [div, sorted_players[current_guesser_idx]];
 }

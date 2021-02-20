@@ -30,6 +30,12 @@
     <script type="text/javascript" charset="utf-8">
         var socket = io();
         var name = "{{ hostname }}";
+        var current_buzz_player = null
+
+        function get_current_player() {
+            return current_buzz_player;
+        }
+
 
         // Connect / disconnect host
         window.onload = function () {
@@ -63,10 +69,12 @@
             document.getElementById("scorebuttons").replaceWith(new_scorebuttons);
 
             // Carousel
+            current_buzz_player = null;
             switch (game.round_mode) {
                 case 0: // buzzing
-                    var new_ul = create_player_list(game, "playerlist");
+                    var [new_ul, current_player] = create_player_list(game, "playerlist");
                     document.getElementById("playerlist").replaceWith(new_ul);
+                    current_buzz_player = current_player?.name;
                     break;
                 case 1: // guessing
                     var new_guess_overview_head = create_guess_overview_head(game.guessing_amount, "guess_overview_head");
@@ -119,6 +127,24 @@
                                     <div class="row justify-content-center">
                                         <div class="col-7">
                                             <div id="playerlist"></div>
+                                        </div>
+                                    </div>
+                                    <div class="row justify-content-center mx-auto px-5 mt-5 pt-5">
+                                        <div class="col-8">
+                                            <div class="row">
+                                                <div class="col-4 d-grid">
+                                                    <button id="correct_button" class="btn btn-success btn-block" onclick="host_correct_answer(get_current_player())">Correct Answer
+                                                        (+10)</button>
+                                                </div>
+                                            
+                                                <div class="col-4 d-grid">
+                                                    <button id="wrong_button" class="btn btn-danger btn-block" onclick="host_wrong_answer(get_current_player())">Wrong Answer
+                                                        (-5)</button>
+                                                </div>
+                                                <div class="col-4 d-grid">
+                                                    <button id="skip_button" class="btn btn-secondary btn-block" onclick="host_skip_player(get_current_player())">Skip Player</button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

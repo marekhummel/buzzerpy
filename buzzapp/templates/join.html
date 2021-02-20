@@ -62,7 +62,7 @@
             round_mode = game.round_mode;    
             switch (round_mode) {
                 case 0:
-                    var new_ul = create_player_list(game, "playerlist");
+                    var [new_ul, _] = create_player_list(game, "playerlist");
                     document.getElementById("playerlist").replaceWith(new_ul);
                     break;
                 case 1:
