@@ -1,6 +1,5 @@
-// GENERAL
-
-function create_scoreboard(players, id, is_host) {
+// SCOREBOARD
+function create_scoreboard(players, id, is_host) {  
     function create_kick_button(player) {
         var btn = document.createElement('button');
         btn.className = 'btn btn-sm btn-danger ms-4 kick_button';
@@ -28,44 +27,46 @@ function create_scoreboard(players, id, is_host) {
     }
 
     // Sort by pts, correct, wrong, bonus, name
-    var cmp_func = function (a, b) { return -(a.pts - b.pts) || -(a.correct_answers - b.correct_answers) };
-    players.sort(cmp_func);
+    var pts_cmp_func = (a, b) => -(a.pts - b.pts);
+    var cmp_fnc = (a, b) => pts_cmp_func(a, b) || -(a.correct_answers - b.correct_answers) || a.name.localeCompare(b.name);
+    var sorted_players = players.slice().sort(cmp_fnc);
 
     var tbody = document.createElement('tbody');
     tbody.setAttribute('id', id);
-    for (var i = 0; i < players.length; i++) {
+    for (var i = 0; i < sorted_players.length; i++) {
+        var player = sorted_players[i];
         var row = document.createElement('tr');
 
         var th_nr = document.createElement('th');
         th_nr.setAttribute('scope', 'row');
-        if (i == 0 || cmp_func(players[i-1], players[i]) != 0)
+        if (i == 0 || pts_cmp_func(sorted_players[i-1], player) != 0)
             th_nr.innerHTML = i+1;
         row.appendChild(th_nr);
 
         var td_name = document.createElement('td');
-        td_name.innerHTML = players[i].name;
+        td_name.innerHTML = player.name;
         row.appendChild(td_name);
 
         var td_correct = document.createElement('td');
-        td_correct.innerHTML = players[i].correct_answers;
+        td_correct.innerHTML = player.correct_answers;
         row.appendChild(td_correct);
 
         var td_wrong = document.createElement('td');
-        td_wrong.innerHTML = players[i].wrong_answers;
+        td_wrong.innerHTML = player.wrong_answers;
         row.appendChild(td_wrong);
 
         var td_bonus = document.createElement('td');
-        td_bonus.innerHTML = players[i].bonus_points;
+        td_bonus.innerHTML = player.bonus_points;
         row.appendChild(td_bonus);
 
         var td_pts = document.createElement('td');
         td_pts.className = 'fw-bold';
-        td_pts.innerHTML = players[i].pts;
+        td_pts.innerHTML = player.pts;
         row.appendChild(td_pts);
 
         if (is_host) {
             var td_kick = document.createElement('td');
-            td_kick.appendChild(create_kick_button(players[i].name));
+            td_kick.appendChild(create_kick_button(player.name));
             row.appendChild(td_kick);
         }
 
@@ -75,8 +76,7 @@ function create_scoreboard(players, id, is_host) {
     return tbody;
 }
 
-
-// BUZZING ROUND
+// PLAYER LIST
 function create_player_list(game, id) {
     function new_list() {
         var list = document.createElement('ul');
@@ -116,11 +116,12 @@ function create_player_list(game, id) {
         return div;
     }
 
+    var sorted_players = game.players.slice().sort((a, b) => a.buzzer_time - b.buzzer_time);
     var buzz_list = new_list();
     var non_buzz_list = new_list();
     var current_guesser_idx = -1;
-    for (var i = 0; i < game.players.length; i++) {
-        var player = game.players[i];
+    for (var i = 0; i < sorted_players.length; i++) {
+        var player = sorted_players[i];
         var [item, content] = new_list_item();
 
         if (player.buzzer_has_buzzed) {

@@ -1,7 +1,7 @@
 // GENERAL
 
 function create_dropdown(players, id) {
-    players.sort(function (a, b) { return a.name.localeCompare(b.name); });
+    var sorted_players = players.slice().sort((a, b) => a.name.localeCompare(b.name));
 
     var select = document.createElement('select');
     select.setAttribute('id', id);
@@ -16,7 +16,7 @@ function create_dropdown(players, id) {
     default_opt.innerText = 'Select Player';
     select.append(default_opt);
 
-    players.forEach(p => {
+    sorted_players.forEach(p => {
         var option = document.createElement('option');
         option.value = p.name;
         option.innerText = p.name;
@@ -75,9 +75,9 @@ function create_scorebuttons(players, id) {
     form.appendChild(row);
 
     // Sort by name
-    players.sort(function (a, b) { return a.name.localeCompare(b.name); });
-    for (var i = 0; i < players.length; i++) {
-        var player = players[i]
+    var sorted_players = players.slice().sort((a, b) => a.name.localeCompare(b.name));
+    for (var i = 0; i < sorted_players.length; i++) {
+        var player = sorted_players[i];
         const player_name = player.name;
 
         var form_group = document.createElement('div');
@@ -103,7 +103,7 @@ function create_scorebuttons(players, id) {
         }
         input_group.appendChild(name);
 
-        var disabled = player.round_has_received_pts | (!player.buzzer_has_buzzed && !player.guessing_text && !player.stopwatch_time);
+        var disabled = player.round_has_received_pts || (!player.buzzer_has_buzzed && !player.guessing_text && player.stopwatch_time === null);
         var btn_correct = create_button('&check;', 'btn-success', 'Correct answer', disabled, () => host_correct_answer(player_name));
         var btn_wrong = create_button('&cross;', 'btn-danger', 'Wrong answer', disabled, () => host_wrong_answer(player_name));
         var btn_skip = create_button('&#9711;', 'btn-secondary', 'Skip player', disabled, () => host_skip_player(player_name));
@@ -125,6 +125,7 @@ function create_guess_overview(players, id) {
 
         var td = document.createElement('td');
         td.className = 'text-center pt-2 pb-4';
+        td.style = "white-space: normal !important; wor -wrap: break-word;";
         td.setAttribute('colspan', 2);
         td.innerText = 'No players have joined yet';
 
@@ -134,19 +135,19 @@ function create_guess_overview(players, id) {
     }
 
     // Sort by name
-    players.sort(function (a, b) { return a.name.localeCompare(b.name); });
+    var sorted_players = players.slice().sort((a, b) => a.name.localeCompare(b.name));
 
     var tbody = document.createElement('tbody');
     tbody.setAttribute('id', id);
-    for (var i = 0; i < players.length; i++) {
+    for (var i = 0; i < sorted_players.length; i++) {
         var row = document.createElement('tr');
 
         var td_name = document.createElement('td');
-        td_name.innerHTML = players[i].name;
+        td_name.innerHTML = sorted_players[i].name;
         row.appendChild(td_name);
 
         var td_guess = document.createElement('td');
-        td_guess.innerHTML = players[i].guessing_text ?? '';
+        td_guess.innerHTML = sorted_players[i].guessing_text ?? '';
         row.appendChild(td_guess);
 
         tbody.appendChild(row);
@@ -176,7 +177,7 @@ function create_stopwatch_overview(players, id) {
     // Sort by stopwatch time
     pressed_players = players.filter(p => p.stopwatch_time != null);
     pressed_players.sort((a, b) => a.stopwatch_time - b.stopwatch_time);
-    other_players = players.filter(p => p.stopwatch_time == null);
+    other_players = players.filter(p => !pressed_players.includes(p));
     players = pressed_players.concat(other_players);
 
     var tbody = document.createElement('tbody');
@@ -233,19 +234,19 @@ function host_next_round() {
 function host_change_roundmode_buzzer() {
     socket.emit('host_change_roundmode', { gamemode: 'buzzer' });
     $('#carousel').carousel(0);
-    $('.carousel').carousel('pause');
+    $('#carousel').carousel('pause');
 }
 
 function host_change_roundmode_guessing() {
     socket.emit('host_change_roundmode', { gamemode: 'guessing' });
     $('#carousel').carousel(1);
-    $('.carousel').carousel('pause');
+    $('#carousel').carousel('pause');
 }
 
 function host_change_roundmode_stopwatch() {
     socket.emit('host_change_roundmode', { gamemode: 'stopwatch' });
     $('#carousel').carousel(2);
-    $('.carousel').carousel('pause');
+    $('#carousel').carousel('pause');
 }
 
 function host_start_stopwatch() {

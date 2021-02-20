@@ -120,13 +120,9 @@ class BuzzGame():
         for p in self.players:
             p.next_round()
 
-    def get_players_ordered(self):
-        def sort_key(p): return (not p.buzzer_has_buzzed, p.buzzer_time)
-        return sorted(self.players, key=sort_key)
-
     def toJson(self):
         return {'host': self.host.toJson() if self.host else None,
-                'players': [p.toJson() for p in self.get_players_ordered()],
+                'players': [p.toJson() for p in self.players],
                 'round_mode': self.round_mode,
                 'round_in_progress': self.round_in_progress}
 

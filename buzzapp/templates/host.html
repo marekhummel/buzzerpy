@@ -30,6 +30,7 @@
         window.onload = function () {
             socket.emit('game_hosted', { hostname: name });
             host_change_roundmode_buzzer();
+            $('#carousel').carousel('pause');
         };
 
         window.onbeforeunload = function () {
@@ -56,6 +57,8 @@
             // Scorebuttons
             var new_scorebuttons = create_scorebuttons(game.players, "scorebuttons");
             document.getElementById("scorebuttons").replaceWith(new_scorebuttons);
+
+            // Carousel
             switch (game.round_mode) {
                 case 0: // buzzing
                     var new_ul = create_player_list(game, "playerlist");
@@ -97,7 +100,7 @@
             <div class="col-xl-7 px-5 d-flex flex-column my-3">
                 <!-- Container -->
                 <div class="row">
-                    <div id="carousel" class="carousel slide carousel-fade" data-ride="carousel" data-interval="false">
+                    <div id="carousel" class="carousel slide carousel-fade" data-interval="false">
                         <!-- Buzzer -->
                         <div id="buzzer_container" class="carousel-item active">
                             <div class="card mb-5 mx-auto shadow">
@@ -117,10 +120,10 @@
                             <div class="card mb-5 shadow">
                                 <div class="card-body">
                                     <h2 class="card-title text-center fw-bold mb-3">Guesses</h2>
-                                    <table class="table card-text table-striped mt-4">
+                                    <table class="table card-text table-striped mt-4" style="table-layout: fixed;">
                                         <thead>
                                             <tr>
-                                                <th scope="col" style="width: 35%;">Name</th>
+                                                <th scope="col" style="width: 30%;">Name</th>
                                                 <th scope="col">Guess</th>
                                             </tr>
                                         </thead>

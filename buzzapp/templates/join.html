@@ -128,8 +128,6 @@
             var guess = document.getElementById('input_guess').value;
             socket.emit('player_guess_lockin', { playername: name, guess: guess });
             document.getElementById('input_guess').disabled = true;
-            document.getElementById('input_guess').disabled = true;
-            document.getElementById('input_guess').value = '';
             document.getElementById('btn_lock_guess').disabled = true;
             document.getElementById('btn_lock_guess').innerText = 'Locked';
             document.getElementById('btn_stopwatch_stop').disabled = true;
@@ -180,7 +178,7 @@
             <div class="col-xl-7 px-5 d-flex flex-column my-3">
                 <!-- Container -->
                 <div class="row">
-                    <div id="carousel" class="carousel slide carousel-fade" data-ride="carousel" data-interval="false">
+                    <div id="carousel" class="carousel slide carousel-fade" data-interval="false">
                         <!-- Buzzer -->
                         <div id="buzzer_container" class="carousel-item active">
                             <div class="card mx-auto shadow">
