@@ -246,6 +246,8 @@ def player_stopwatch_stop(data):
     game.round_in_progress = True
     send_game_update(True)
 
+    confirm_data = (playername, player.stopwatch_time)
+    socketio.emit('host_confirm_stopwatch_time', confirm_data)
 
 
 # ------ MAIN --------

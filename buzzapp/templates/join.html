@@ -121,6 +121,12 @@
             };
         })
 
+        socket.on('host_confirm_stopwatch_time', function (player, time) {
+            if (player == name)
+                document.getElementById('btn_stopwatch_stop').innerText = 'Stopped at ' + time.toFixed(2) + ' secs';
+        })
+
+        // Locals
         document.addEventListener('keydown', function (event) {
             if (event.keyCode == 32) { // Space / Enter 13 ?
                 switch (round_mode) {
@@ -137,7 +143,6 @@
             }
         });
 
-        // Locals
         function send_click() {
             if (!document.getElementById('buzzer').disabled) {
                 socket.emit('player_buzzer_click', { playername: name });
@@ -159,9 +164,7 @@
 
         function player_stopwatch_stop() {
             socket.emit('player_stopwatch_stop', { playername: name });
-            document.getElementById('btn_stopwatch_stop').disabled = true;
-            var time = document.getElementById('stopwatch').innerText;
-            document.getElementById('btn_stopwatch_stop').innerText = 'Stopped at ' + time;
+            document.getElementById('btn_stopwatch_stop').disabled = true; 
         }
     </script>
 </head>
