@@ -247,7 +247,7 @@ def player_stopwatch_stop(data):
     send_game_update()
 
     confirm_data = (playername, player.stopwatch_time)
-    socketio.emit('host_confirm_stopwatch_time', confirm_data)
+    socketio.emit('srv_confirm_stopwatch_time', confirm_data)
 
 
 # ------ MAIN --------

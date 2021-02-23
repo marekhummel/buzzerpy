@@ -37,7 +37,7 @@
             socket.on('srv_game_update', on_game_update);
             socket.on('srv_host_update', on_host_update);
             socket.on('srv_stopwatch_action', on_stopwatch_action);
-            socket.on('host_confirm_stopwatch_time', on_host_confirm_stopwatch_time);
+            socket.on('srv_confirm_stopwatch_time', on_host_confirm_stopwatch_time);
             socket.on('srv_next_round', on_next_round);
             socket.on('srv_kick_player', on_srv_kick_player);
             socket.on('srv_abort_connect', () => window.location.href = '/');
