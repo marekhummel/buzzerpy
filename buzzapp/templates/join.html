@@ -34,13 +34,13 @@
             window.playername = "{{ playername }}";
 
             // Register socket (server) events
-            socket.on('game_update', on_game_update);
-            socket.on('host_update', on_host_update);
-            socket.on('stopwatch_action', on_stopwatch_action);
+            socket.on('srv_game_update', on_game_update);
+            socket.on('srv_host_update', on_host_update);
+            socket.on('srv_stopwatch_action', on_stopwatch_action);
             socket.on('host_confirm_stopwatch_time', on_host_confirm_stopwatch_time);
-            socket.on('player_next_round', on_next_round);
-            socket.on('player_kicked', on_player_kicked);
-            socket.on('disconnect', () => window.location.href = '/');
+            socket.on('srv_next_round', on_next_round);
+            socket.on('srv_kick_player', on_srv_kick_player);
+            socket.on('srv_abort_connect', () => window.location.href = '/');
            
             // Key listener
             $(document).keydown(function (event) {
@@ -58,10 +58,10 @@
 
             // Connect / disconnect
             $(window).on('beforeunload', function () {
-                socket.emit('game_left', { playername: window.playername });
+                socket.emit('player_game_left', { playername: window.playername });
             });
 
-            socket.emit('game_joined', { playername: window.playername });
+            socket.emit('player_game_joined', { playername: window.playername });
         });
 
 

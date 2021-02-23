@@ -35,8 +35,8 @@
             window.current_buzz_player = null;
 
             // Register socket (server) events
-            socket.on('game_update', on_game_update);
-            socket.on('disconnect', () => window.location.href = '/');   
+            socket.on('srv_game_update', on_game_update);
+            socket.on('srv_abort_connect', () => window.location.href = '/');   
             
             // Connect / disconnect
             $(window).on('beforeunload', function () {

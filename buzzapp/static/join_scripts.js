@@ -70,7 +70,7 @@ function on_host_confirm_stopwatch_time(player, time) {
         $('#btn_stopwatch_stop').text('Stopped at ' + time.toFixed(2) + ' secs');
 }
 
-function on_player_kicked(kicked) {
+function on_srv_kick_player(kicked) {
     if (kicked == window.playername)
         window.location.href = '/';
 }
@@ -95,8 +95,8 @@ function create_guessing_input(cols, id, old_inputs) {
         
         // Keep previous inputs
         if (old_inputs.length > 0) {
-            if (i < curr_guesses.length) {
-                input.value = old_inputs[i].val();
+            if (i < old_inputs.length) {
+                input.value = old_inputs[i].value;
             }
             input.disabled = old_inputs[0].disabled;
         }

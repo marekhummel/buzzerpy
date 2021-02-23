@@ -14,11 +14,11 @@ stopwatch = Stopwatch()
 
 
 def send_game_update():
-    socketio.emit('game_update', game.toJson())
+    socketio.emit('srv_game_update', game.toJson())
 
 
 def send_host_update():
-    socketio.emit('host_update', game.host.__dict__ if game.host else None)
+    socketio.emit('srv_host_update', game.host.__dict__ if game.host else None)
 
 
 # Force update of js files
@@ -82,13 +82,13 @@ def join():
 
 # -- Connect / disconnect --
 
-@socketio.on('game_joined')
+@socketio.on('player_game_joined')
 def game_joined(data):
     playername = data['playername']
 
     if (not game.has_host() or game.get_player(playername) or
             game.host.name == playername or playername == ''):
-        emit('disconnect')
+        emit('srv_abort_connect')
         return
 
     player = Player(playername)
@@ -96,7 +96,7 @@ def game_joined(data):
     send_game_update()
 
 
-@socketio.on('game_left')
+@socketio.on('player_game_left')
 def game_left(data):
     playername = data['playername']
     if game.get_player(playername):
@@ -107,7 +107,7 @@ def game_left(data):
 @socketio.on('game_hosted')
 def game_hosted(data):
     if game.has_host():
-        emit('disconnect')
+        emit('srv_abort_connect')
         return
 
     hostname = data['hostname']
@@ -133,7 +133,7 @@ def game_host_left():
 @socketio.on('host_kick_player')
 def host_kick_player(data):
     playername = data['playername']
-    socketio.emit('player_kicked', playername)
+    socketio.emit('srv_kick_player', playername)
     if game.get_player(playername):
         game.remove_player(playername)
         send_game_update()
@@ -155,7 +155,7 @@ def host_change_roundmode(data):
 def host_next_round():
     game.next_round()
     send_game_update()
-    socketio.emit('player_next_round')
+    socketio.emit('srv_next_round')
 
 
 @socketio.on('host_change_score')
@@ -190,7 +190,7 @@ def host_start_stopwatch(data):
     elif action == 'reset':
         stopwatch.reset()
 
-    socketio.emit('stopwatch_action', action)
+    socketio.emit('srv_stopwatch_action', action)
 
 
 @socketio.on('host_guess_column_change')
