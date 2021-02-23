@@ -29,78 +29,22 @@
 
     <script type="text/javascript" charset="utf-8">
         var socket = io();
-        var name = "{{ hostname }}";
-        var current_buzz_player = null
 
-        function get_current_player() {
-            return current_buzz_player;
-        }
+        $(function () {
+            window.hostname = '{{ hostname }}';
+            window.current_buzz_player = null;
 
+            // Register socket (server) events
+            socket.on('game_update', on_game_update);
+            socket.on('disconnect', () => window.location.href = '/');   
+            
+            // Connect / disconnect
+            $(window).on('beforeunload', function () {
+                socket.emit('game_host_left');
+            });
 
-        // Connect / disconnect host
-        window.onload = function () {
             socket.emit('game_hosted', { hostname: name });
             host_change_roundmode_buzzer();
-        };
-
-        window.onbeforeunload = function () {
-            socket.emit('game_host_left');
-        };
-
-        socket.on('disconnect', function () {
-            window.location.href = '/';
-        });
-
-        // Game update
-        socket.on('game_update', function (game, host_only) {
-            var new_scoreboard = create_scoreboard(game.players, "scoreboard", true);
-            document.getElementById("scoreboard").replaceWith(new_scoreboard);
-
-            if (game.players.length > 0) {
-                var new_dropdown = create_dropdown(game.players, 'player_dropdown');
-                document.getElementById("player_dropdown").replaceWith(new_dropdown);
-            }
-            else {
-                document.getElementById("player_dropdown").disabled = true;
-            }
-
-            // Scorebuttons
-            var new_scorebuttons = create_scorebuttons(game.players, "scorebuttons");
-            document.getElementById("scorebuttons").replaceWith(new_scorebuttons);
-
-            // Carousel
-            current_buzz_player = null;
-            switch (game.round_mode) {
-                case 0: // buzzing
-                    var [new_ul, current_player] = create_player_list(game, "playerlist");
-                    document.getElementById("playerlist").replaceWith(new_ul);
-                    current_buzz_player = current_player?.name;
-                    break;
-                case 1: // guessing
-                    var new_guess_overview_head = create_guess_overview_head(game.guessing_amount, "guess_overview_head");
-                    document.getElementById("guess_overview_head").replaceWith(new_guess_overview_head);
-
-                    var new_guess_overview = create_guess_overview(game.players, game.guessing_amount, "guess_overview");
-                    document.getElementById("guess_overview").replaceWith(new_guess_overview);
-
-                    document.getElementById("btn_guess_add_col").disabled = (game.round_in_progress || game.guessing_amount == 10);
-                    document.getElementById("btn_guess_remove_col").disabled = (game.round_in_progress || game.guessing_amount == 1);
-                    break;
-                case 2: // stopwatch
-                    var new_sw_overview = create_stopwatch_overview(game.players, "stopwatch_overview");
-                    document.getElementById("stopwatch_overview").replaceWith(new_sw_overview);
-                    break;
-            }
-            
-            // Round mode change card
-            if (game.round_in_progress) {
-                $('#btngrp_roundmode_change input').attr('disabled', 'disabled');
-                $('#btngrp_roundmode_change').attr('title', 'Finish the round to change mode');
-            }
-            else {
-                $('#btngrp_roundmode_change input').removeAttr('disabled');
-                $('#btngrp_roundmode_change').removeAttr('title');
-            }
         });
 </script>
 </head>
@@ -133,16 +77,16 @@
                                         <div class="col-8">
                                             <div class="row">
                                                 <div class="col-4 d-grid">
-                                                    <button id="correct_button" class="btn btn-success btn-block" onclick="host_correct_answer(get_current_player())">Correct Answer
+                                                    <button id="correct_button" class="btn btn-success btn-block" onclick="host_correct_answer(window.current_buzz_player)">Correct Answer
                                                         (+10)</button>
                                                 </div>
                                             
                                                 <div class="col-4 d-grid">
-                                                    <button id="wrong_button" class="btn btn-danger btn-block" onclick="host_wrong_answer(get_current_player())">Wrong Answer
+                                                    <button id="wrong_button" class="btn btn-danger btn-block" onclick="host_wrong_answer(window.current_buzz_player)">Wrong Answer
                                                         (-5)</button>
                                                 </div>
                                                 <div class="col-4 d-grid">
-                                                    <button id="skip_button" class="btn btn-secondary btn-block" onclick="host_skip_player(get_current_player())">Skip Player</button>
+                                                    <button id="skip_button" class="btn btn-secondary btn-block" onclick="host_skip_player(window.current_buzz_player)">Skip Player</button>
                                                 </div>
                                             </div>
                                         </div>

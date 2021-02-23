@@ -1,4 +1,57 @@
-// GENERAL
+// ----- SOCKETS -----
+function on_game_update(game, host_only) {
+    var new_scoreboard = create_scoreboard(game.players, "scoreboard", true);
+    document.getElementById("scoreboard").replaceWith(new_scoreboard);
+
+    if (game.players.length > 0) {
+        var new_dropdown = create_dropdown(game.players, 'player_dropdown');
+        document.getElementById("player_dropdown").replaceWith(new_dropdown);
+    }
+    else {
+        document.getElementById("player_dropdown").disabled = true;
+    }
+
+    // Scorebuttons
+    var new_scorebuttons = create_scorebuttons(game.players, "scorebuttons");
+    document.getElementById("scorebuttons").replaceWith(new_scorebuttons);
+
+    // Carousel
+    window.current_buzz_player = null;
+    switch (game.round_mode) {
+        case 0: // buzzing
+            var [new_ul, current_player] = create_player_list(game, "playerlist");
+            document.getElementById("playerlist").replaceWith(new_ul);
+            window.current_buzz_player = current_player?.name;
+            break;
+        case 1: // guessing
+            var new_guess_overview_head = create_guess_overview_head(game.guessing_amount, "guess_overview_head");
+            document.getElementById("guess_overview_head").replaceWith(new_guess_overview_head);
+
+            var new_guess_overview = create_guess_overview(game.players, game.guessing_amount, "guess_overview");
+            document.getElementById("guess_overview").replaceWith(new_guess_overview);
+
+            document.getElementById("btn_guess_add_col").disabled = (game.round_in_progress || game.guessing_amount == 10);
+            document.getElementById("btn_guess_remove_col").disabled = (game.round_in_progress || game.guessing_amount == 1);
+            break;
+        case 2: // stopwatch
+            var new_sw_overview = create_stopwatch_overview(game.players, "stopwatch_overview");
+            document.getElementById("stopwatch_overview").replaceWith(new_sw_overview);
+            break;
+    }
+
+    // Round mode change card
+    if (game.round_in_progress) {
+        $('#btngrp_roundmode_change input').attr('disabled', 'disabled');
+        $('#btngrp_roundmode_change').attr('title', 'Finish the round to change mode');
+    }
+    else {
+        $('#btngrp_roundmode_change input').removeAttr('disabled');
+        $('#btngrp_roundmode_change').removeAttr('title');
+    }
+}
+
+
+// ----- DOM UPDATES -----
 
 function create_dropdown(players, id) {
     var sorted_players = players.slice().sort((a, b) => a.name.localeCompare(b.name));
@@ -115,7 +168,6 @@ function create_scorebuttons(players, id) {
     return scorebuttons;
 }
 
-// GUESSING ROUND
 function create_guess_overview(players, cols, id) {
     if (players.length == 0) {
         var tbody = document.createElement('tbody');
@@ -183,7 +235,6 @@ function create_guess_overview_head(cols, id) {
     return thead;
 }
 
-// STOPWATCH ROUND
 function create_stopwatch_overview(players, id) {
     if (players.length == 0) {
         var tbody = document.createElement('tbody');
@@ -230,7 +281,7 @@ function create_stopwatch_overview(players, id) {
 }
 
 
-// MISC
+// ----- MISC -----
 function host_correct_answer(player) {
     socket.emit('host_change_score', { player_name: player, action: 'correct' });
 };
