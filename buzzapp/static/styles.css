@@ -1,5 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Reggae+One&display=swap');
 
+/* ----- All ----- */
+
+/* Document */
 html {
     font-size: 14px;
 }
@@ -8,14 +11,7 @@ body {
     font-family: 'Reggae One', sans-serif !important;
 }
 
-.kick_button {
-    font-size: 70%; 
-    float: right;
-}
-
-#button_leave {
-    width: 100%;
-}
+/* Buzzer player list */
 
 .buzzer_list_item {
     border-radius: 10px !important; 
@@ -37,10 +33,7 @@ body {
     border: 2px solid #CCC !important;
 }
 
-#stopwatch {
-    font-size:600% !important;
-}
-
+/* Misc */
 .noselect {
     -moz-user-select: none; /* Firefox */
     -ms-user-select: none; /* Internet Explorer/Edge */
@@ -55,6 +48,31 @@ body {
   margin-left: -1px;
   top: 0;
 }
+
+#stopwatch {
+    font-size:600% !important;
+}
+
+#button_leave {
+    width: 100%;
+}
+
+
+
+
+/* ----- Host only ----- */
+.kick_button {
+    font-size: 70%; 
+    float: right;
+}
+
+#btngrp_roundmode_change input {
+    outline: none !important; 
+    box-shadow: none;
+}
+
+
+/* ----- Join only ----- */
 
 .stopwatch_button {
     width: 150%; 
@@ -73,8 +91,3 @@ body {
 #buzzer:disabled { 
     border: 3px solid rgb(1, 90, 27) !important;
 } 
-
-#btngrp_roundmode_change input {
-    outline: none !important; 
-    box-shadow: none;
-}
