@@ -1,5 +1,5 @@
 // ----- SOCKETS -----
-function on_game_update(game, host_only) {
+function on_game_update(game) {
     var new_scoreboard = create_scoreboard(game.players, "scoreboard", true);
     document.getElementById("scoreboard").replaceWith(new_scoreboard);
 

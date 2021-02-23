@@ -5,7 +5,7 @@ var round_mode = 0;
 
 
 // ----- SOCKETS -----
-function on_game_update(game, host_only) {
+function on_game_update(game) {
     var new_scoreboard = create_scoreboard(game.players, 'scoreboard', false);
     $('#scoreboard').replaceWith(new_scoreboard);
 
@@ -16,11 +16,9 @@ function on_game_update(game, host_only) {
             $('#playerlist').replaceWith(new_ul);
             break;
         case 1:
-            if (!host_only) {
-                var new_guessing_input = create_guessing_input(game.guessing_amount, 'guessing_inputs');
-                $('#guessing_inputs').replaceWith(new_guessing_input);
-                guesses = game.guessing_amount;
-            }
+            var new_guessing_input = create_guessing_input(game.guessing_amount, 'guessing_inputs', $('#guessing_inputs input'));
+            $('#guessing_inputs').replaceWith(new_guessing_input);
+            guesses = game.guessing_amount;
             break;
     }
 
@@ -81,7 +79,7 @@ function on_player_kicked(kicked) {
 // ----- DOM UPDATES -----
 
 // GUESSING
-function create_guessing_input(cols, id) {
+function create_guessing_input(cols, id, old_inputs) {
     var div = document.createElement('div');
     div.setAttribute('id', id);
 
@@ -90,11 +88,18 @@ function create_guessing_input(cols, id) {
         input.classList.add('form-control', 'text-center', 'my-1');
         input.setAttribute('id', 'input_guess_' + i);
         input.setAttribute('autocomplete', 'off');
-
+        
         var placeholder = 'Your Guess';
         if (cols > 1) placeholder += ' #' + (i+1);
         input.setAttribute('placeholder', placeholder);
-
+        
+        // Keep previous inputs
+        if (old_inputs.length > 0) {
+            if (i < curr_guesses.length) {
+                input.value = old_inputs[i].val();
+            }
+            input.disabled = old_inputs[0].disabled;
+        }
         div.appendChild(input);
     }
     return div;

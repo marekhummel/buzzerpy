@@ -13,8 +13,8 @@ game = BuzzGame()
 stopwatch = Stopwatch()
 
 
-def send_game_update(host_only=False):
-    socketio.emit('game_update', (game.toJson(), host_only))
+def send_game_update():
+    socketio.emit('game_update', game.toJson())
 
 
 def send_host_update():
@@ -231,7 +231,7 @@ def player_guess_lockin(data):
     if not player.guessing_list:
         player.set_guesses(data['guesses'])
         game.round_in_progress = True
-        send_game_update(True)
+        send_game_update()
 
 
 @socketio.on('player_stopwatch_stop')
@@ -244,7 +244,7 @@ def player_stopwatch_stop(data):
 
     player.stop_stopwatch(stopwatch.elapsed())
     game.round_in_progress = True
-    send_game_update(True)
+    send_game_update()
 
     confirm_data = (playername, player.stopwatch_time)
     socketio.emit('host_confirm_stopwatch_time', confirm_data)
