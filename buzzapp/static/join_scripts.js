@@ -6,25 +6,25 @@ var round_mode = 0;
 
 // ----- SOCKETS -----
 function on_game_update(game, host_only) {
-    var new_scoreboard = create_scoreboard(game.players, "scoreboard", false);
-    document.getElementById("scoreboard").replaceWith(new_scoreboard);
+    var new_scoreboard = create_scoreboard(game.players, 'scoreboard', false);
+    $('#scoreboard').replaceWith(new_scoreboard);
 
     round_mode = game.round_mode;
     switch (round_mode) {
         case 0:
-            var [new_ul, _] = create_player_list(game, "playerlist");
-            document.getElementById("playerlist").replaceWith(new_ul);
+            var [new_ul, _] = create_player_list(game, 'playerlist');
+            $('#playerlist').replaceWith(new_ul);
             break;
         case 1:
             if (!host_only) {
-                var new_guessing_input = create_guessing_input(game.guessing_amount, "guessing_inputs");
-                document.getElementById("guessing_inputs").replaceWith(new_guessing_input);
+                var new_guessing_input = create_guessing_input(game.guessing_amount, 'guessing_inputs');
+                $('#guessing_inputs').replaceWith(new_guessing_input);
                 guesses = game.guessing_amount;
             }
             break;
     }
 
-    $('.carousel').carousel(round_mode);
+    $('#carousel').carousel(round_mode);
 }
 
 function on_host_update(host) {
@@ -32,7 +32,7 @@ function on_host_update(host) {
         var closing_counter = 30;
         closing_timer = setInterval(function () {
             closing_counter--;
-            document.getElementById("hostname").innerText = `Your host has left, game will be closed in ${closing_counter}secs`;
+            $('#hostname').text(`Your host has left, game will be closed in ${closing_counter}secs`);
             if (closing_counter == 0) {
                 clearInterval(closing_timer);
                 window.location.href = '/';
@@ -41,19 +41,16 @@ function on_host_update(host) {
     }
     else {
         clearInterval(closing_timer);
-        document.getElementById("hostname").innerText = 'Hosted by "' + host.name + '"';
+        $('#hostname').html(`Hosted by <b>&raquo;{{ ${host.name} }}&laquo;</b>`);
     }
 }
 
 function on_next_round() {
-    document.getElementById("buzzer").disabled = false;
-    document.getElementById("buzzer").classList.replace('btn-success', 'btn-danger');
-    document.getElementById("buzzer").innerText = 'BUZZ';
-    $('#guessing_inputs input').each(function () { $(this).prop('disabled', false).val(''); });
-    document.getElementById('btn_lock_guess').innerText = 'Lock In';
-    document.getElementById('btn_lock_guess').disabled = false;
-    document.getElementById('btn_stopwatch_stop').innerText = 'Stop'
-    document.getElementById('btn_stopwatch_stop').disabled = false;
+    $('#buzzer').prop('disabled', false).text('BUZZ')
+                .removeClass('btn-success').addClass('btn-danger');
+    $('#guessing_inputs input').prop('disabled', false).val('');
+    $('#btn_lock_guess').prop('disabled', false).text('Lock In');
+    $('#btn_stopwatch_stop').prop('disabled', false).text('Stop');
 }
 
 function on_stopwatch_action(action) {
@@ -72,7 +69,7 @@ function on_stopwatch_action(action) {
 
 function on_host_confirm_stopwatch_time(player, time) {
     if (player == window.playername)
-        document.getElementById('btn_stopwatch_stop').innerText = 'Stopped at ' + time.toFixed(2) + ' secs';
+        $('#btn_stopwatch_stop').text('Stopped at ' + time.toFixed(2) + ' secs');
 }
 
 function on_player_kicked(kicked) {

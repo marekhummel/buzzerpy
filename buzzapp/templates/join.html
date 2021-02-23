@@ -43,7 +43,7 @@
             socket.on('disconnect', () => window.location.href = '/');
            
             // Key listener
-            document.addEventListener('keydown', function (event) {
+            $(document).keydown(function (event) {
                 if (event.keyCode == 32) { // Space / Enter 13 ?
                     switch (round_mode) {
                         case 0:
@@ -67,27 +67,27 @@
 
         // Locals
         function send_click() {
-            if (!document.getElementById('buzzer').disabled) {
+            var buzzer = $('#buzzer');
+            if (!buzzer.disabled) {
                 socket.emit('player_buzzer_click', { playername: window.playername });
-                document.getElementById('buzzer').disabled = true;
-                document.getElementById('buzzer').classList.replace('btn-danger', 'btn-success');
-                document.getElementById('buzzer').innerText = 'BUZZED';
+                buzzer.prop('disabled', true)
+                        .removeClass('btn-danger').addClass('btn-success')
+                        .text('BUZZED');
             };
         };
 
         function lock_in_guess() {
             var inputs = $('#guessing_inputs input');
+            inputs.prop('disabled', true);
+            $('#btn_lock_guess').prop('disabled', true).text('Locked');
+
             var guesses = inputs.map(function () { return $(this).val(); }).get();
             socket.emit('player_guess_lockin', { playername: window.playername, guesses: guesses });
-
-            inputs.each(function () { $(this).prop('disabled', true); });
-            document.getElementById('btn_lock_guess').disabled = true;
-            document.getElementById('btn_lock_guess').innerText = 'Locked';
         };
 
         function player_stopwatch_stop() {
+            $('#btn_stopwatch_stop').prop('disabled', true);
             socket.emit('player_stopwatch_stop', { playername: window.playername });
-            document.getElementById('btn_stopwatch_stop').disabled = true; 
         }  
     </script>
 </head>
