@@ -23,126 +23,52 @@
     <link href="{{url_for('static', filename='styles.css')}}?" rel="stylesheet">
     </link>
 
-    <script src="../static/join_scripts.js"></script>
     <script src="../static/scripts.js"></script>
-    <link href="../static/styles.css" rel="stylesheet">
-    </link>
+    <script src="../static/join_scripts.js"></script>
+    <link href="../static/styles.css" rel="stylesheet"></link>
 
     <script type="text/javascript" charset="utf-8">
-        var socket = io();
-        var name = "{{ playername }}";
-        var closing_timer;
-        var round_mode = 0;
-        var guesses = 0;
+         var socket = io();
 
-        // Connect / disconnect
-        window.onload = function () {
-            socket.emit('game_joined', { playername: name }); 
-        };
+        $(function() {
+            window.playername = "{{ playername }}";
 
-        window.onbeforeunload = function () {
-            socket.emit('game_left', { playername: name });
-        };
-
-        socket.on('disconnect', function () {
-            window.location.href = '/';
-        });
-
-        socket.on('player_kicked', function (kicked) {
-            if (kicked == name)
-                window.location.href = '/';
-        });
-
-
-        // Game update
-        socket.on('game_update', function (game, host_only) {
-            var new_scoreboard = create_scoreboard(game.players, "scoreboard", false);
-            document.getElementById("scoreboard").replaceWith(new_scoreboard);
-
-            round_mode = game.round_mode;    
-            switch (round_mode) {
-                case 0:
-                    var [new_ul, _] = create_player_list(game, "playerlist");
-                    document.getElementById("playerlist").replaceWith(new_ul);
-                    break;
-                case 1:
-                    if (!host_only) {
-                        var new_guessing_input = create_guessing_input(game.guessing_amount, "guessing_inputs");
-                        document.getElementById("guessing_inputs").replaceWith(new_guessing_input);
-                        guesses = game.guessing_amount;
+            // Register socket (server) events
+            socket.on('game_update', on_game_update);
+            socket.on('host_update', on_host_update);
+            socket.on('stopwatch_action', on_stopwatch_action);
+            socket.on('host_confirm_stopwatch_time', on_host_confirm_stopwatch_time);
+            socket.on('player_next_round', on_next_round);
+            socket.on('player_kicked', on_player_kicked);
+            socket.on('disconnect', () => window.location.href = '/');
+           
+            // Key listener
+            document.addEventListener('keydown', function (event) {
+                if (event.keyCode == 32) { // Space / Enter 13 ?
+                    switch (round_mode) {
+                        case 0:
+                            document.getElementById('buzzer').click();
+                            break;
+                        case 2:
+                            document.getElementById('btn_stopwatch_stop').click();
+                            break;
                     }
-                    break;
-            }
-            $('.carousel').carousel(round_mode);
+                }
+            });
+
+            // Connect / disconnect
+            $(window).on('beforeunload', function () {
+                socket.emit('game_left', { playername: window.playername });
+            });
+
+            socket.emit('game_joined', { playername: window.playername });
         });
 
-        socket.on('host_update', function (host) {
-            if (host === undefined) {
-                var closing_counter = 30;
-                closing_timer = setInterval(function () {
-                    closing_counter--;
-                    document.getElementById("hostname").innerText = `Your host has left, game will be closed in ${closing_counter}secs`;
-                    if (closing_counter == 0) {
-                        clearInterval(closing_timer);
-                        window.location.href = '/';
-                    }
-                }, 1000);
-            }
-            else {
-                clearInterval(closing_timer);
-                document.getElementById("hostname").innerText = 'Hosted by "' + host.name + '"';
-            }
-        });
-
-        // Game features
-        socket.on('player_next_round', function () {
-            document.getElementById("buzzer").disabled = false;
-            document.getElementById("buzzer").classList.replace('btn-success', 'btn-danger');
-            document.getElementById("buzzer").innerText = 'BUZZ';
-            $('#guessing_inputs input').each(function () { $(this).prop('disabled', false).val(''); });
-            document.getElementById('btn_lock_guess').innerText = 'Lock In';
-            document.getElementById('btn_lock_guess').disabled = false;
-            document.getElementById('btn_stopwatch_stop').innerText = 'Stop'
-            document.getElementById('btn_stopwatch_stop').disabled = false;
-        });
-
-
-        socket.on('stopwatch_action', function (action) {
-            switch (action) {
-                case 'start':
-                    stopwatch_start();
-                    break;
-                case 'stop':
-                    stopwatch_stop();
-                    break;
-                case 'reset':
-                    stopwatch_reset();
-                    break;
-            };
-        })
-
-        socket.on('host_confirm_stopwatch_time', function (player, time) {
-            if (player == name)
-                document.getElementById('btn_stopwatch_stop').innerText = 'Stopped at ' + time.toFixed(2) + ' secs';
-        })
 
         // Locals
-        document.addEventListener('keydown', function (event) {
-            if (event.keyCode == 32) { // Space / Enter 13 ?
-                switch (round_mode) {
-                    case 0:
-                        document.getElementById('buzzer').click();
-                        break;
-                    case 2:
-                        document.getElementById('btn_stopwatch_stop').click();
-                        break;
-                }
-            }
-        });
-
         function send_click() {
             if (!document.getElementById('buzzer').disabled) {
-                socket.emit('player_buzzer_click', { playername: name });
+                socket.emit('player_buzzer_click', { playername: window.playername });
                 document.getElementById('buzzer').disabled = true;
                 document.getElementById('buzzer').classList.replace('btn-danger', 'btn-success');
                 document.getElementById('buzzer').innerText = 'BUZZED';
@@ -152,7 +78,7 @@
         function lock_in_guess() {
             var inputs = $('#guessing_inputs input');
             var guesses = inputs.map(function () { return $(this).val(); }).get();
-            socket.emit('player_guess_lockin', { playername: name, guesses: guesses });
+            socket.emit('player_guess_lockin', { playername: window.playername, guesses: guesses });
 
             inputs.each(function () { $(this).prop('disabled', true); });
             document.getElementById('btn_lock_guess').disabled = true;
@@ -160,9 +86,9 @@
         };
 
         function player_stopwatch_stop() {
-            socket.emit('player_stopwatch_stop', { playername: name });
+            socket.emit('player_stopwatch_stop', { playername: window.playername });
             document.getElementById('btn_stopwatch_stop').disabled = true; 
-        }
+        }  
     </script>
 </head>
 

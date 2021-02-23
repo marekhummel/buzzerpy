@@ -1,3 +1,87 @@
+// VARIABLES
+var closing_timer;
+var guesses = 0;
+var round_mode = 0;
+
+
+// ----- SOCKETS -----
+function on_game_update(game, host_only) {
+    var new_scoreboard = create_scoreboard(game.players, "scoreboard", false);
+    document.getElementById("scoreboard").replaceWith(new_scoreboard);
+
+    round_mode = game.round_mode;
+    switch (round_mode) {
+        case 0:
+            var [new_ul, _] = create_player_list(game, "playerlist");
+            document.getElementById("playerlist").replaceWith(new_ul);
+            break;
+        case 1:
+            if (!host_only) {
+                var new_guessing_input = create_guessing_input(game.guessing_amount, "guessing_inputs");
+                document.getElementById("guessing_inputs").replaceWith(new_guessing_input);
+                guesses = game.guessing_amount;
+            }
+            break;
+    }
+
+    $('.carousel').carousel(round_mode);
+}
+
+function on_host_update(host) {
+    if (host === undefined) {
+        var closing_counter = 30;
+        closing_timer = setInterval(function () {
+            closing_counter--;
+            document.getElementById("hostname").innerText = `Your host has left, game will be closed in ${closing_counter}secs`;
+            if (closing_counter == 0) {
+                clearInterval(closing_timer);
+                window.location.href = '/';
+            }
+        }, 1000);
+    }
+    else {
+        clearInterval(closing_timer);
+        document.getElementById("hostname").innerText = 'Hosted by "' + host.name + '"';
+    }
+}
+
+function on_next_round() {
+    document.getElementById("buzzer").disabled = false;
+    document.getElementById("buzzer").classList.replace('btn-success', 'btn-danger');
+    document.getElementById("buzzer").innerText = 'BUZZ';
+    $('#guessing_inputs input').each(function () { $(this).prop('disabled', false).val(''); });
+    document.getElementById('btn_lock_guess').innerText = 'Lock In';
+    document.getElementById('btn_lock_guess').disabled = false;
+    document.getElementById('btn_stopwatch_stop').innerText = 'Stop'
+    document.getElementById('btn_stopwatch_stop').disabled = false;
+}
+
+function on_stopwatch_action(action) {
+    switch (action) {
+        case 'start':
+            stopwatch_start();
+            break;
+        case 'stop':
+            stopwatch_stop();
+            break;
+        case 'reset':
+            stopwatch_reset();
+            break;
+    };
+}
+
+function on_host_confirm_stopwatch_time(player, time) {
+    if (player == window.playername)
+        document.getElementById('btn_stopwatch_stop').innerText = 'Stopped at ' + time.toFixed(2) + ' secs';
+}
+
+function on_player_kicked(kicked) {
+    if (kicked == window.playername)
+        window.location.href = '/';
+}
+
+
+// ----- DOM UPDATES -----
 
 // GUESSING
 function create_guessing_input(cols, id) {
@@ -18,5 +102,3 @@ function create_guessing_input(cols, id) {
     }
     return div;
 }
-
-
