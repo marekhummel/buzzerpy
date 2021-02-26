@@ -185,3 +185,15 @@ function create_player_list(game, id) {
         div.appendChild(non_buzz_list);
     return [div, sorted_players[current_guesser_idx]];
 }
+
+
+// Locals
+function replace_element(id, new_element) {
+    document.getElementById(id).replaceWith(new_element);
+
+    // var element = $('#' + id);
+    // element.fadeOut(1000, function () {
+    //     element.replaceWith(new_element);
+    //     element.fadeIn(1000);
+    // });
+}
