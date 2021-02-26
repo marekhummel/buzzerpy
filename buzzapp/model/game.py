@@ -30,6 +30,7 @@ class Player():
     correct_answers: int
     wrong_answers: int
     bonus_points: int
+    answer_streak: int
 
     # ** Init
 
@@ -38,6 +39,7 @@ class Player():
         self.correct_answers = 0
         self.wrong_answers = 0
         self.bonus_points = 0
+        self.answer_streak = 0
         self.next_round()
 
     # ** Player interaction
@@ -58,11 +60,13 @@ class Player():
         self.correct_answers += 1
         self.round_has_received_pts = True
         self.round_correct_answer = True
+        self.answer_streak += 1
 
     def wrong_answer(self):
         self.wrong_answers += 1
         self.round_has_received_pts = True
         self.round_correct_answer = False
+        self.answer_streak = 0
 
     # ** Misc
 

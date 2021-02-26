@@ -44,7 +44,7 @@ function create_scoreboard(players, id, is_host) {
         row.appendChild(th_nr);
 
         var td_name = document.createElement('td');
-        td_name.innerHTML = player.name;
+        td_name.innerHTML = player.name + (player.answer_streak >= 3 ? ' &#x1F525;' : '');
         row.appendChild(td_name);
 
         var td_correct = document.createElement('td');
