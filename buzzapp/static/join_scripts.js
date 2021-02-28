@@ -7,17 +7,21 @@ var round_mode = 0;
 // ----- SOCKETS -----
 function on_game_update(game) {
     var new_scoreboard = create_scoreboard(game.players, 'scoreboard', false);
-    $('#scoreboard').replaceWith(new_scoreboard);
+    replace_element('scoreboard', new_scoreboard);
 
     round_mode = game.round_mode;
     switch (round_mode) {
         case 0:
             var [new_ul, _] = create_player_list(game, 'playerlist');
-            $('#playerlist').replaceWith(new_ul);
+            replace_element('playerlist', new_ul);
             break;
         case 1:
-            var new_guessing_input = create_guessing_input(game.guessing_amount, 'guessing_inputs', $('#guessing_inputs input'));
-            $('#guessing_inputs').replaceWith(new_guessing_input);
+            var old_guesses = $('#guessing_inputs input');
+            var old_focus_idx = old_guesses.toArray().findIndex((input) => input == document.activeElement);
+            var new_guessing_input = create_guessing_input(game.guessing_amount, 'guessing_inputs', old_guesses);
+            replace_element('guessing_inputs', new_guessing_input);
+            restore_focus_guesssing_input(old_focus_idx, '#guessing_inputs input');
+
             guesses = game.guessing_amount;
             break;
     }
@@ -103,4 +107,15 @@ function create_guessing_input(cols, id, old_inputs) {
         div.appendChild(input);
     }
     return div;
+}
+
+function restore_focus_guesssing_input(old_focus_idx, new_inputs_selector) {
+    if (old_focus_idx == -1)
+        return;
+
+    var new_inputs = $(new_inputs_selector).toArray();
+    if (new_inputs.length <= old_focus_idx)
+        return;
+
+    new_inputs[old_focus_idx].focus();
 }
