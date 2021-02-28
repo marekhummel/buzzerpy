@@ -44,14 +44,19 @@
            
             // Key listener
             $(document).keydown(function (event) {
-                if (event.keyCode == 32) { // Space / Enter 13 ?
+                if (event.keyCode == 32) { // Space 
                     switch (round_mode) {
                         case 0:
-                            document.getElementById('buzzer').click();
+                            $('#buzzer').trigger('click');
                             break;
                         case 2:
-                            document.getElementById('btn_stopwatch_stop').click();
+                            $('#btn_stopwatch_stop').trigger('click');
                             break;
+                    }
+                }
+                else if (event.keyCode == 13) { // Enter
+                    if (round_mode == 1) {
+                        $('#btn_lock_guess').trigger('click');
                     }
                 }
             });
