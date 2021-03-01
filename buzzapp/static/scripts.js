@@ -116,7 +116,7 @@ function create_player_list(game, id) {
         return [div, null];
     }
 
-    var sorted_players = game.players.slice().sort((a, b) => a.buzzer_time - b.buzzer_time);
+    var sorted_players = game.players.slice().sort((a, b) => a.buzzer_guesser_time - b.buzzer_guesser_time);
     var buzz_list = new_list();
     var non_buzz_list = new_list();
     var current_guesser_idx = -1;

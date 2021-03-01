@@ -193,19 +193,26 @@ function create_guess_overview(players, cols, id) {
 
     // Sort by name
     var sorted_players = players.slice().sort((a, b) => a.name.localeCompare(b.name));
+    var ranked_players = players.filter(p => p.buzzer_guesser_time).sort((a, b) => a.buzzer_guesser_time - b.buzzer_guesser_time);
 
     var tbody = document.createElement('tbody');
     tbody.setAttribute('id', id);
     for (var i = 0; i < sorted_players.length; i++) {
+        var player = sorted_players[i];
         var row = document.createElement('tr');
 
+        var td_rank = document.createElement('td');
+        var rank = ranked_players.findIndex(p => p.name === player.name);
+        td_rank.innerHTML = (rank != -1) ? `${rank+1}.` : '';
+        row.appendChild(td_rank);
+
         var td_name = document.createElement('td');
-        td_name.innerHTML = sorted_players[i].name;
+        td_name.innerHTML = player.name;
         row.appendChild(td_name);
 
         for (j = 0; j < cols; j++) {
             var td_guess = document.createElement('td');
-            td_guess.innerHTML = sorted_players[i].guessing_list?.[j] ?? '';
+            td_guess.innerHTML = player.guessing_list?.[j] ?? '';
             row.appendChild(td_guess);
         }
 
@@ -223,9 +230,15 @@ function create_guess_overview_head(cols, id) {
     var tr = document.createElement('tr');
     thead.appendChild(tr);
 
+    var rankcol = document.createElement('th');
+    rankcol.setAttribute('scope', 'col');
+    rankcol.style = 'width: 5%;';
+    rankcol.innerText = '#';
+    tr.appendChild(rankcol);
+
     var namecol = document.createElement('th');
     namecol.setAttribute('scope', 'col');
-    namecol.style = 'width: 25%;';
+    namecol.style = 'width: 30%;';
     namecol.innerText = 'Name';
     tr.appendChild(namecol);
 

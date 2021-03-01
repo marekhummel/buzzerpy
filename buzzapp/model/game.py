@@ -22,7 +22,7 @@ class Host():
 class Player():
     name: str
     buzzer_has_buzzed: bool
-    buzzer_time: Optional[float]
+    buzzer_guesser_time: Optional[float]
     stopwatch_time: Optional[float]
     guessing_list: List[str]
     round_has_received_pts: bool
@@ -46,13 +46,14 @@ class Player():
 
     def buzz(self):
         self.buzzer_has_buzzed = True
-        self.buzzer_time = monotonic()
-
-    def stop_stopwatch(self, clock: Optional[float]):
-        self.stopwatch_time = clock if clock else 0
+        self.buzzer_guesser_time = monotonic()
 
     def set_guesses(self, guesses: List[str]):
         self.guessing_list = guesses
+        self.buzzer_guesser_time = monotonic()
+
+    def stop_stopwatch(self, clock: Optional[float]):
+        self.stopwatch_time = clock if clock else 0
 
     # ** Scores
 
@@ -72,7 +73,7 @@ class Player():
 
     def next_round(self):
         self.buzzer_has_buzzed = False
-        self.buzzer_time = None
+        self.buzzer_guesser_time = None
         self.stopwatch_time = None
         self.guessing_list = None
         self.round_has_received_pts = False
