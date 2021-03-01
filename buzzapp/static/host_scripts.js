@@ -182,7 +182,7 @@ function create_guess_overview(players, cols, id) {
 
         var td = document.createElement('td');
         td.className = 'text-center pt-2 pb-4';
-        td.style = 'white-space: normal !important; wor -wrap: break-word;';
+        td.style = 'white-space: normal !important; word-wrap: break-word;';
         td.setAttribute('colspan', cols+1);
         td.innerText = 'No players have joined yet';
 
