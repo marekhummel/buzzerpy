@@ -18,7 +18,7 @@ def send_game_update():
 
 
 def send_host_update():
-    socketio.emit('srv_host_update', game.host.__dict__ if game.host else None)
+    socketio.emit('srv_host_update', game.host.toJson() if game.host else None)
 
 
 # Force update of js files
@@ -106,6 +106,7 @@ def game_left(data):
 
 @socketio.on('game_hosted')
 def game_hosted(data):
+    print('game_hosted' + str(data))
     if game.has_host():
         emit('srv_abort_connect')
         return

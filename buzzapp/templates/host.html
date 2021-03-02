@@ -24,6 +24,7 @@
 
     <script type="text/javascript" charset="utf-8">
         var socket = io();
+        // io.origins('*:*') ?
 
         $(function () {
             window.hostname = '{{ hostname }}';
@@ -39,7 +40,7 @@
                 socket.emit('game_host_left');
             });
 
-            socket.emit('game_hosted', { hostname: name });
+            socket.emit('game_hosted', { hostname: window.hostname });
             host_change_roundmode_buzzer();
         });
 </script>

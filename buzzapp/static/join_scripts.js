@@ -20,7 +20,7 @@ function on_game_update(game) {
             var old_focus_idx = old_guesses.toArray().findIndex((input) => input == document.activeElement);
             var new_guessing_input = create_guessing_input(game.guessing_amount, 'guessing_inputs', old_guesses);
             replace_element('guessing_inputs', new_guessing_input);
-            restore_focus_guesssing_input(old_focus_idx, '#guessing_inputs input');
+            restore_focus_guessing_input(old_focus_idx, '#guessing_inputs input');
 
             guesses = game.guessing_amount;
             break;
@@ -30,6 +30,7 @@ function on_game_update(game) {
 }
 
 function on_host_update(host) {
+    console.log(host);
     if (host === undefined) {
         var closing_counter = 30;
         closing_timer = setInterval(function () {
@@ -43,7 +44,7 @@ function on_host_update(host) {
     }
     else {
         clearInterval(closing_timer);
-        $('#hostname').html(`Hosted by <b>&raquo;{{ ${host.name} }}&laquo;</b>`);
+        $('#hostname').html(`Hosted by <b>&raquo;${host.name}&laquo;</b>`);
     }
 }
 
@@ -109,7 +110,8 @@ function create_guessing_input(cols, id, old_inputs) {
     return div;
 }
 
-function restore_focus_guesssing_input(old_focus_idx, new_inputs_selector) {
+function restore_focus_guessing_input(old_focus_idx, new_inputs_selector) {
+    console.log('restore_focus');
     if (old_focus_idx == -1)
         return;
 
