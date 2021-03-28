@@ -1,7 +1,6 @@
 // ----- SOCKETS -----
-function on_game_update(game) {
+function on_game_update(game, host_only) {
     var new_scoreboard = create_scoreboard(game.players, 'scoreboard', true);
-    // document.getElementById('scoreboard').replaceWith(new_scoreboard);
     replace_element('scoreboard', new_scoreboard);
 
     if (game.players.length > 0) {
@@ -21,13 +20,11 @@ function on_game_update(game) {
     switch (game.round_mode) {
         case 0: // buzzing
             var [new_ul, current_player] = create_player_list(game, 'playerlist');
-            // document.getElementById('playerlist').replaceWith(new_ul);
             replace_element('playerlist', new_ul);
             window.current_buzz_player = current_player?.name;
             break;
         case 1: // guessing
             var new_guess_overview_head = create_guess_overview_head(game.guessing_amount, 'guess_overview_head');
-            // document.getElementById('guess_overview_head').replaceWith(new_guess_overview_head);
             replace_element('guess_overview_head', new_guess_overview_head);
 
             var new_guess_overview = create_guess_overview(game.players, game.guessing_amount, 'guess_overview');

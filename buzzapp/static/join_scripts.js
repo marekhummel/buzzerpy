@@ -5,7 +5,9 @@ var round_mode = 0;
 
 
 // ----- SOCKETS -----
-function on_game_update(game) {
+function on_game_update(game, host_only) {
+    if (host_only) return;
+
     var new_scoreboard = create_scoreboard(game.players, 'scoreboard', false);
     replace_element('scoreboard', new_scoreboard);
 
@@ -30,7 +32,6 @@ function on_game_update(game) {
 }
 
 function on_host_update(host) {
-    console.log(host);
     if (host === undefined) {
         var closing_counter = 30;
         closing_timer = setInterval(function () {
