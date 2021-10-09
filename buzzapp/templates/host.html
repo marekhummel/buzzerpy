@@ -33,7 +33,7 @@
             // Register socket (server) events
             socket.on('srv_game_update', on_game_update);
             socket.on('srv_abort_connect', () => window.location.href = '/');   
-            socket.on('disconnect', () => window.location.href = '/');   
+            // socket.on('disconnect', () => window.location.href = '/');   
             
             // Connect / disconnect
             $(window).on('beforeunload', function () {

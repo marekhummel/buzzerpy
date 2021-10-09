@@ -37,7 +37,7 @@
             socket.on('srv_next_round', on_next_round);
             socket.on('srv_kick_player', on_srv_kick_player);
             socket.on('srv_abort_connect', () => window.location.href = '/');
-            socket.on('disconnect', () => window.location.href = '/'); 
+            // socket.on('disconnect', () => window.location.href = '/'); 
            
             // Key listener
             $(document).keydown(function (event) {
