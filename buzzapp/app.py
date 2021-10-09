@@ -255,5 +255,13 @@ def player_stopwatch_stop(data):
 # ------ MAIN --------
 
 if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 5000))
-    socketio.run(app, port=port)
+    if 'PORT' in os.environ:
+        # heroku run
+        port = int(os.environ['PORT'])
+        socketio.run(app, host='0.0.0.0', port=port)
+    else:
+        # local
+        socketio.run(app, debug=True)
+
+    
+    
