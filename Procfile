@@ -1,1 +1,1 @@
-web: python .\buzzapp\app.py
+web: python ./buzzapp/app.py
