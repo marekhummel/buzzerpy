@@ -1,11 +1,13 @@
 import os
 from flask import Flask, render_template, request, session
 from flask_socketio import SocketIO, emit
+from flask_cors import CORS
 from werkzeug.utils import redirect
 
 from model.game import BuzzGame, Host, Player, Stopwatch, RoundMode
 
 app = Flask(__name__)
+CORS(app, resources={r'/*': {'origins': 'https://buzzer-py.herokuapp.com/'}})
 app.config['SECRET_KEY'] = 'jh324j2p948vn2mv50ü'
 socketio = SocketIO(app)
 first_request = True
@@ -122,7 +124,7 @@ def game_hosted(data):
 
 @socketio.on('game_host_left')
 def game_host_left():
-    assert game.has_host(), "non-existent host has left"
+    assert game.has_host(), 'non-existent host has left'
 
     game.remove_host()
     send_host_update()
@@ -254,7 +256,7 @@ def player_stopwatch_stop(data):
 
 # ------ MAIN --------
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     if 'PORT' in os.environ:
         # heroku run
         port = int(os.environ['PORT'])
