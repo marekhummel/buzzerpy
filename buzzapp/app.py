@@ -258,7 +258,7 @@ if __name__ == "__main__":
     if 'PORT' in os.environ:
         # heroku run
         port = int(os.environ['PORT'])
-        socketio.run(app, host='0.0.0.0', port=port)
+        socketio.run(app, host='0.0.0.0', port=port, cors_allowed_origins='https://buzzer-py.herokuapp.com')
     else:
         # local
         socketio.run(app, debug=True)
