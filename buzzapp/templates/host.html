@@ -23,9 +23,17 @@
     <link href="{{url_for('static', filename='styles.css')}}?" rel="stylesheet"></link>
 
     <script type="text/javascript" charset="utf-8">
-        console.log(window.location);
         var socket = io();
         // io.origins('*:*') ?
+
+        function ping() {
+            var url = window.location.origin + '/ping';
+            var http = new XMLHttpRequest();
+            http.open('GET', url, true);
+            try {
+                http.send(null);
+            } catch (exception) { }
+        }
 
         $(function () {
             window.hostname = '{{ hostname }}';
@@ -40,6 +48,9 @@
             $(window).on('beforeunload', function () {
                 socket.emit('game_host_left');
             });
+
+            // Ping every 10min
+            setInterval(ping, 10 * 60 * 1000);
 
             socket.emit('game_hosted', { hostname: window.hostname });
             host_change_roundmode_buzzer();

@@ -43,6 +43,12 @@ def index():
     return render_template('index.html', errors=errors)
 
 
+@app.route('/ping')
+def ping():
+    print('Host pinged.')
+    return ''
+
+
 @app.route('/host')
 def host():
     hostname = request.args.get('name')
@@ -264,6 +270,3 @@ if __name__ == '__main__':
     else:
         # local
         socketio.run(app, debug=True)
-
-    
-    
