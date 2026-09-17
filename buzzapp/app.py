@@ -1,14 +1,16 @@
 import os
 
 from flask import Flask, render_template, request, session
-from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from model.game import BuzzGame, Host, Player, RoundMode, Stopwatch
 from werkzeug.utils import redirect
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "https://buzzer-py.herokuapp.com/"}})
-app.config["SECRET_KEY"] = "jh324j2p948vn2mv50ü"
+secret_key = os.environ.get("SECRET_KEY")
+if "PORT" in os.environ and not secret_key:
+    raise RuntimeError("SECRET_KEY must be set when running in production")
+
+app.config["SECRET_KEY"] = secret_key or "local-development-only"
 socketio = SocketIO(app)
 first_request = True
 
@@ -48,6 +50,11 @@ def index():
 def ping():
     print("Host pinged.")
     return ""
+
+
+@app.route("/health")
+def health():
+    return {"status": "ok"}
 
 
 @app.route("/host")
@@ -271,7 +278,7 @@ def player_stopwatch_stop(data):
 
 if __name__ == "__main__":
     if "PORT" in os.environ:
-        # heroku run
+        # Hosting platforms provide PORT for publicly reachable web services.
         port = int(os.environ["PORT"])
         socketio.run(app, host="0.0.0.0", port=port)
     else:
