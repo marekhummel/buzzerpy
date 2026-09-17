@@ -63,6 +63,21 @@ function stopwatch_set_elapsed(seconds) {
 }
 
 
+function on_stopwatch_action(action) {
+    switch (action) {
+        case 'start':
+            stopwatch_start();
+            break;
+        case 'stop':
+            stopwatch_stop();
+            break;
+        case 'reset':
+            stopwatch_reset();
+            break;
+    }
+}
+
+
 function get_stopwatch_value() {
     return timeToString(elapsedTime);
 }

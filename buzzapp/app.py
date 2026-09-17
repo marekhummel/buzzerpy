@@ -26,11 +26,11 @@ DISCONNECT_GRACE_SECONDS = 10
 
 
 def send_game_update(host_only=False):
-    socketio.emit("srv_game_update", (game.toJson(), host_only))
+    socketio.emit("srv_game_update", (game.to_json(), host_only))
 
 
 def send_host_update():
-    socketio.emit("srv_host_update", game.host.toJson() if game.host else None)
+    socketio.emit("srv_host_update", game.host.to_json() if game.host else None)
 
 
 def is_host() -> bool:
@@ -349,11 +349,7 @@ def host_start_stopwatch(data):
 
 @socketio.on("host_guess_column_change")
 def host_guess_column_change(data):
-    if (
-        not is_host()
-        or game.round_mode != RoundMode.Guessing
-        or game.round_in_progress
-    ):
+    if not is_host() or game.round_mode != RoundMode.Guessing or game.round_in_progress:
         return
 
     if not isinstance(data, dict):

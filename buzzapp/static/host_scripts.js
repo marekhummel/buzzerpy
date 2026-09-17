@@ -157,8 +157,8 @@ function create_scorebuttons(players, id) {
         input_group.appendChild(name);
 
         var disabled = player.round_has_received_pts || (!player.buzzer_has_buzzed && !player.guessing_list && player.stopwatch_time === null);
-        var btn_correct = create_button('&check;', 'btn-success', 'Correct answer', disabled, () => host_correct_answer(player_name));
-        var btn_wrong = create_button('&cross;', 'btn-danger', 'Wrong answer', disabled, () => host_wrong_answer(player_name));
+        var btn_correct = create_button(String.fromCodePoint(0x2713), 'btn-success', 'Correct answer', disabled, () => host_correct_answer(player_name));
+        var btn_wrong = create_button(String.fromCodePoint(0x2717), 'btn-danger', 'Wrong answer', disabled, () => host_wrong_answer(player_name));
         // var btn_skip = create_button('&#9711;', 'btn-secondary', 'Skip player', disabled, () => host_skip_player(player_name));
         input_group.appendChild(btn_correct);
         input_group.appendChild(btn_wrong);

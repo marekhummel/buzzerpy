@@ -59,9 +59,12 @@
                 }
             });
 
-            socket.on('connect', () => {
+            function join_game() {
                 socket.emit('player_game_joined', { playername: window.playername });
-            });
+            }
+
+            socket.on('connect', join_game);
+            if (socket.connected) join_game();
         });
 
 

@@ -42,15 +42,19 @@
 
             // Register socket (server) events
             socket.on('srv_game_update', on_game_update);
+            socket.on('srv_stopwatch_action', on_stopwatch_action);
             socket.on('srv_abort_connect', () => window.location.href = '/');   
             // socket.on('disconnect', () => window.location.href = '/');   
             
             // Ping every 10min
             setInterval(ping, 10 * 60 * 1000);
 
-            socket.on('connect', () => {
+            function host_game() {
                 socket.emit('game_hosted', { hostname: window.hostname });
-            });
+            }
+
+            socket.on('connect', host_game);
+            if (socket.connected) host_game();
         });
 </script>
 </head>

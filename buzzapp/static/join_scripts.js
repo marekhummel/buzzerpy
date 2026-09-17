@@ -57,20 +57,6 @@ function on_next_round() {
     $('#btn_stopwatch_stop').prop('disabled', false).text('Stop');
 }
 
-function on_stopwatch_action(action) {
-    switch (action) {
-        case 'start':
-            stopwatch_start();
-            break;
-        case 'stop':
-            stopwatch_stop();
-            break;
-        case 'reset':
-            stopwatch_reset();
-            break;
-    };
-}
-
 function on_host_confirm_stopwatch_time(player, time) {
     if (player == window.playername) {
         stopwatch_stop();

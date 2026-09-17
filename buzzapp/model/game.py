@@ -14,7 +14,7 @@ class Host:
     def __init__(self, name: str):
         self.name = name
 
-    def toJson(self):
+    def to_json(self):
         return self.__dict__
 
 
@@ -82,7 +82,7 @@ class Player:
         net = self.correct_answers * 10 - self.wrong_answers * 5
         return net + self.bonus_points
 
-    def toJson(self):
+    def to_json(self):
         return dict(self.__dict__, pts=self.get_points())
 
 
@@ -126,10 +126,10 @@ class BuzzGame:
         for p in self.players:
             p.next_round()
 
-    def toJson(self):
+    def to_json(self):
         return {
-            "host": self.host.toJson() if self.host else None,
-            "players": [p.toJson() for p in self.players],
+            "host": self.host.to_json() if self.host else None,
+            "players": [p.to_json() for p in self.players],
             "round_mode": self.round_mode,
             "round_in_progress": self.round_in_progress,
             "guessing_amount": self.guessing_amount,
