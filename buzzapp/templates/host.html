@@ -24,7 +24,7 @@
     <link href="{{url_for('static', filename='styles.css')}}?" rel="stylesheet"></link>
 
     <script type="text/javascript" charset="utf-8">
-        var socket = io();
+        var socket;
         // io.origins('*:*') ?
 
         function ping() {
@@ -39,6 +39,7 @@
         $(function () {
             window.hostname = '{{ hostname }}';
             window.current_buzz_player = null;
+            socket = io();
 
             // Register socket (server) events
             socket.on('srv_game_update', on_game_update);
@@ -54,8 +55,20 @@
             }
 
             socket.on('connect', host_game);
-            if (socket.connected) host_game();
         });
+
+        function leave_game() {
+            var left = false;
+            function finish_leaving() {
+                if (left) return;
+                left = true;
+                socket.disconnect();
+                window.location.href = '/';
+            }
+
+            socket.emit('game_host_left', finish_leaving);
+            setTimeout(finish_leaving, 1000);
+        }
 </script>
 </head>
 
@@ -256,7 +269,7 @@
     </div>
 
     <div class="d-grid col-2 mx-auto mt-5">
-        <button id="button_leave" class="btn btn-danger mt-4 mb-1" type="button" onclick="window.location.href = '/';">Leave Game</button>
+        <button id="button_leave" class="btn btn-danger mt-4 mb-1" type="button" onclick="leave_game()">Leave Game</button>
     </div>
 </body>
 

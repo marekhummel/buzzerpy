@@ -241,6 +241,32 @@ def disconnected():
         socketio.start_background_task(remove_disconnected_player, sid, playername)
 
 
+@socketio.on("player_game_left")
+def game_left():
+    player = current_player()
+    if not player:
+        return
+
+    player_sids.pop(socket_id(), None)
+    player_tokens.pop(player.name, None)
+    game.remove_player(player.name)
+    send_game_update()
+
+
+@socketio.on("game_host_left")
+def game_host_left():
+    global host_sid, host_token
+
+    if not is_host():
+        return
+
+    game.remove_host()
+    host_sid = None
+    host_token = None
+    send_host_update()
+    send_game_update()
+
+
 # -- Host Actions --
 
 

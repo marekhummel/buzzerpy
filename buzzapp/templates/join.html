@@ -25,10 +25,11 @@
     </link>
 
     <script type="text/javascript" charset="utf-8">
-         var socket = io();
+         var socket;
 
         $(function() {
             window.playername = "{{ playername }}";
+            socket = io();
 
             // Register socket (server) events
             socket.on('srv_game_update', on_game_update);
@@ -64,7 +65,6 @@
             }
 
             socket.on('connect', join_game);
-            if (socket.connected) join_game();
         });
 
 
@@ -91,7 +91,20 @@
         function player_stopwatch_stop() {
             $('#btn_stopwatch_stop').prop('disabled', true);
             socket.emit('player_stopwatch_stop', { playername: window.playername });
-        }  
+        }
+
+        function leave_game() {
+            var left = false;
+            function finish_leaving() {
+                if (left) return;
+                left = true;
+                socket.disconnect();
+                window.location.href = '/';
+            }
+
+            socket.emit('player_game_left', finish_leaving);
+            setTimeout(finish_leaving, 1000);
+        }
     </script>
 </head>
 
@@ -207,7 +220,7 @@
 
 
     <div class="col-2 mx-auto fixed-bottom my-5">
-        <button id="button_leave" class="btn btn-danger" type="button" onclick="window.location.href = '/';">Leave
+        <button id="button_leave" class="btn btn-danger" type="button" onclick="leave_game()">Leave
             Game</button>
     </div>
 </body>
