@@ -76,12 +76,13 @@ def host():
 @app.route("/join")
 def join():
     playername = request.args.get("name")
+    host = game.host
 
-    if not game.has_host():
+    if host is None:
         session["index_errors"] = "GAME NOT HOSTED YET"
         return redirect("/")
 
-    if game.get_player(playername) or game.host.name == playername:
+    if game.get_player(playername) or host.name == playername:
         session["index_errors"] = "NAME ALREADY CHOSEN"
         return redirect("/")
 
@@ -90,8 +91,7 @@ def join():
         return redirect("/")
 
     session.pop("index_errors", None)
-    hname = game.host.name
-    return render_template("join.html", hostname=hname, playername=playername)
+    return render_template("join.html", hostname=host.name, playername=playername)
 
 
 # ----- SOCKET COMMUNICATION -----
@@ -103,11 +103,12 @@ def join():
 @socketio.on("player_game_joined")
 def game_joined(data):
     playername = data["playername"]
+    host = game.host
 
     if (
-        not game.has_host()
+        host is None
         or game.get_player(playername)
-        or game.host.name == playername
+        or host.name == playername
         or playername == ""
     ):
         emit("srv_abort_connect")

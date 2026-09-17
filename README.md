@@ -15,6 +15,15 @@ poetry run python buzzapp/app.py
 Open <http://127.0.0.1:5000> in a browser. The local server uses a
 development-only session key; do not use it for a public deployment.
 
+## Development checks
+
+Run the configured checks from the repository root:
+
+```sh
+poetry run ruff check buzzapp
+poetry run mypy
+```
+
 ## Deploy to Render
 
 Deploy this as a **Web Service**, not a Static Site: the application needs a

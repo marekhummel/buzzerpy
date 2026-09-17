@@ -23,9 +23,9 @@ class Player:
     buzzer_has_buzzed: bool
     buzzer_guesser_time: float | None
     stopwatch_time: float | None
-    guessing_list: list[str]
+    guessing_list: list[str] | None
     round_has_received_pts: bool
-    round_correct_answer: bool
+    round_correct_answer: bool | None
     correct_answers: int
     wrong_answers: int
     bonus_points: int
@@ -87,7 +87,7 @@ class Player:
 
 
 class BuzzGame:
-    host: Host
+    host: Host | None
     players: list[Player]
     round_mode: RoundMode
     round_in_progress: bool
