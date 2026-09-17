@@ -1,4 +1,5 @@
 import os
+import secrets
 
 from flask import Flask, render_template, request, session
 from flask_socketio import SocketIO, emit
@@ -12,12 +13,16 @@ if "PORT" in os.environ and not secret_key:
 
 app.config["SECRET_KEY"] = secret_key or "local-development-only"
 socketio = SocketIO(app)
-first_request = True
 
 game = BuzzGame()
 stopwatch = Stopwatch()
 host_sid: str | None = None
+host_token: str | None = None
 player_sids: dict[str, str] = {}
+player_tokens: dict[str, str] = {}
+
+MAX_NAME_LENGTH = 32
+DISCONNECT_GRACE_SECONDS = 10
 
 
 def send_game_update(host_only=False):
@@ -44,6 +49,54 @@ def current_player() -> Player | None:
     return game.get_player(playername) if playername else None
 
 
+def session_identity(role: str) -> tuple[str, str] | None:
+    name = session.get("participant_name")
+    token = session.get("participant_token")
+    if (
+        session.get("participant_role") != role
+        or not isinstance(name, str)
+        or not isinstance(token, str)
+    ):
+        return None
+    return name, token
+
+
+def set_session_identity(role: str, name: str) -> None:
+    session["participant_role"] = role
+    session["participant_name"] = name
+    session["participant_token"] = secrets.token_urlsafe(32)
+
+
+def valid_name(name: object) -> bool:
+    return isinstance(name, str) and bool(name) and len(name) <= MAX_NAME_LENGTH
+
+
+def remove_disconnected_host(sid: str) -> None:
+    global host_sid, host_token
+
+    socketio.sleep(DISCONNECT_GRACE_SECONDS)
+    if host_sid != sid:
+        return
+
+    game.remove_host()
+    host_sid = None
+    host_token = None
+    send_host_update()
+    send_game_update()
+
+
+def remove_disconnected_player(sid: str, playername: str) -> None:
+    socketio.sleep(DISCONNECT_GRACE_SECONDS)
+    if player_sids.get(sid) != playername:
+        return
+
+    del player_sids[sid]
+    if game.get_player(playername):
+        game.remove_player(playername)
+        player_tokens.pop(playername, None)
+        send_game_update()
+
+
 # Force update of js files
 @app.after_request
 def add_header(response):
@@ -56,10 +109,6 @@ def add_header(response):
 
 @app.route("/")
 def index():
-    global first_request  # Not preferred, but works for now
-    if first_request:
-        session.clear()
-        first_request = False
     errors = session.get("index_errors")
     return render_template("index.html", errors=errors)
 
@@ -77,7 +126,11 @@ def health():
 
 @app.route("/host")
 def host():
-    hostname = request.args.get("name")
+    hostname = request.args.get("name", "").strip()
+
+    if not valid_name(hostname):
+        session["index_errors"] = "ENTER A NAME"
+        return redirect("/")
 
     if game.has_host():
         session["index_errors"] = "GAME ALREADY HOSTED"
@@ -88,12 +141,13 @@ def host():
         return redirect("/")
 
     session.pop("index_errors", None)
+    set_session_identity("host", hostname)
     return render_template("host.html", hostname=hostname)
 
 
 @app.route("/join")
 def join():
-    playername = request.args.get("name")
+    playername = request.args.get("name", "").strip()
     host = game.host
 
     if host is None:
@@ -104,11 +158,12 @@ def join():
         session["index_errors"] = "NAME ALREADY CHOSEN"
         return redirect("/")
 
-    if playername == "":
+    if not valid_name(playername):
         session["index_errors"] = "ENTER A NAME"
         return redirect("/")
 
     session.pop("index_errors", None)
+    set_session_identity("player", playername)
     return render_template("join.html", hostname=host.name, playername=playername)
 
 
@@ -120,36 +175,54 @@ def join():
 
 @socketio.on("player_game_joined")
 def game_joined(data):
-    playername = data["playername"]
-    host = game.host
-
-    if (
-        host is None
-        or game.get_player(playername)
-        or host.name == playername
-        or playername == ""
-    ):
+    identity = session_identity("player")
+    if identity is None:
         emit("srv_abort_connect")
         return
 
-    player = Player(playername)
-    game.add_player(player)
+    playername, token = identity
+    host = game.host
+
+    if host is None or host.name == playername:
+        emit("srv_abort_connect")
+        return
+
+    existing_player = game.get_player(playername)
+    if existing_player:
+        if player_tokens.get(playername) != token:
+            emit("srv_abort_connect")
+            return
+        for sid, name in list(player_sids.items()):
+            if name == playername:
+                del player_sids[sid]
+    else:
+        player = Player(playername)
+        game.add_player(player)
+        player_tokens[playername] = token
+
     player_sids[socket_id()] = playername
     send_game_update()
 
 
 @socketio.on("game_hosted")
 def game_hosted(data):
-    global host_sid
+    global host_sid, host_token
 
-    print("game_hosted" + str(data))
-    if game.has_host():
+    identity = session_identity("host")
+    if identity is None:
         emit("srv_abort_connect")
         return
 
-    hostname = data["hostname"]
-    host = Host(hostname)
-    game.set_host(host)
+    hostname, token = identity
+    host = game.host
+    if host:
+        if host.name != hostname or host_token != token:
+            emit("srv_abort_connect")
+            return
+    else:
+        game.set_host(Host(hostname))
+        host_token = token
+
     host_sid = socket_id()
 
     send_host_update()
@@ -158,19 +231,14 @@ def game_hosted(data):
 
 @socketio.on("disconnect")
 def disconnected():
-    global host_sid
-
     if is_host():
-        game.remove_host()
-        host_sid = None
-        send_host_update()
-        send_game_update()
+        socketio.start_background_task(remove_disconnected_host, socket_id())
         return
 
-    playername = player_sids.pop(socket_id(), None)
+    sid = socket_id()
+    playername = player_sids.get(sid)
     if playername and game.get_player(playername):
-        game.remove_player(playername)
-        send_game_update()
+        socketio.start_background_task(remove_disconnected_player, sid, playername)
 
 
 # -- Host Actions --
@@ -193,7 +261,7 @@ def host_kick_player(data):
 
 @socketio.on("host_change_roundmode")
 def host_change_roundmode(data):
-    if not is_host():
+    if not is_host() or game.round_in_progress or stopwatch.is_running:
         return
 
     if not isinstance(data, dict):
@@ -236,6 +304,9 @@ def host_change_score(data):
         return
 
     action = data.get("action")
+    if action in {"correct", "wrong", "skip"} and player.round_has_received_pts:
+        return
+
     if action == "correct":
         player.correct_answer()
     elif action == "wrong":
@@ -255,7 +326,7 @@ def host_change_score(data):
 
 @socketio.on("host_stopwatch_action")
 def host_start_stopwatch(data):
-    if not is_host():
+    if not is_host() or game.round_mode != RoundMode.Stopwatch:
         return
 
     if not isinstance(data, dict):
@@ -278,7 +349,11 @@ def host_start_stopwatch(data):
 
 @socketio.on("host_guess_column_change")
 def host_guess_column_change(data):
-    if not is_host():
+    if (
+        not is_host()
+        or game.round_mode != RoundMode.Guessing
+        or game.round_in_progress
+    ):
         return
 
     if not isinstance(data, dict):
@@ -303,7 +378,7 @@ def host_guess_column_change(data):
 def buzzer_clicked(data):
     player = current_player()
 
-    if not player:
+    if not player or game.round_mode != RoundMode.Buzzer:
         return
 
     player.buzz()
@@ -315,11 +390,20 @@ def buzzer_clicked(data):
 def player_guess_lockin(data):
     player = current_player()
 
-    if not player:
+    if not player or game.round_mode != RoundMode.Guessing:
         return
 
-    if not player.guessing_list:
-        player.set_guesses(data["guesses"])
+    if not isinstance(data, dict):
+        return
+
+    guesses = data.get("guesses")
+    if (
+        not player.guessing_list
+        and isinstance(guesses, list)
+        and len(guesses) == game.guessing_amount
+        and all(isinstance(guess, str) for guess in guesses)
+    ):
+        player.set_guesses(guesses)
         game.round_in_progress = True
         send_game_update(True)
 

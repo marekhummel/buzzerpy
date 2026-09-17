@@ -48,8 +48,9 @@
             // Ping every 10min
             setInterval(ping, 10 * 60 * 1000);
 
-            socket.emit('game_hosted', { hostname: window.hostname });
-            host_change_roundmode_buzzer();
+            socket.on('connect', () => {
+                socket.emit('game_hosted', { hostname: window.hostname });
+            });
         });
 </script>
 </head>

@@ -32,7 +32,7 @@ function on_game_update(game, host_only) {
 }
 
 function on_host_update(host) {
-    if (host === undefined) {
+    if (host == null) {
         var closing_counter = 30;
         closing_timer = setInterval(function () {
             closing_counter--;
