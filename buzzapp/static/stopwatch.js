@@ -57,6 +57,12 @@ function stopwatch_reset() {
 }
 
 
+function stopwatch_set_elapsed(seconds) {
+    elapsedTime = seconds * 1000;
+    print(timeToString(elapsedTime));
+}
+
+
 function get_stopwatch_value() {
     return timeToString(elapsedTime);
 }

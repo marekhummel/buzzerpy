@@ -349,15 +349,12 @@ function host_remove_guess_column() {
 
 function host_start_stopwatch() {
     socket.emit('host_stopwatch_action', { action: 'start' });
-    stopwatch_start();
 };
 
 function host_stop_stopwatch() {
     socket.emit('host_stopwatch_action', { action: 'stop' });
-    stopwatch_stop();
 };
 
 function host_reset_stopwatch() {
     socket.emit('host_stopwatch_action', { action: 'reset' });
-    stopwatch_reset();
 };

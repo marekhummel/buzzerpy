@@ -145,19 +145,28 @@ class Stopwatch:
         self._running = False
         self._elapsed_intervals = []
 
-    def start(self):
-        if not self._running:
-            self._start = monotonic()
-            self._running = True
-
-    def stop(self):
+    def start(self) -> bool:
         if self._running:
-            self._elapsed_intervals.append(monotonic() - self._start)
-            self._running = False
+            return False
 
-    def reset(self):
+        self._start = monotonic()
+        self._running = True
+        return True
+
+    def stop(self) -> bool:
         if not self._running:
-            self._elapsed_intervals = []
+            return False
+
+        self._elapsed_intervals.append(monotonic() - self._start)
+        self._running = False
+        return True
+
+    def reset(self) -> bool:
+        if self._running:
+            return False
+
+        self._elapsed_intervals = []
+        return True
 
     @property
     def is_running(self) -> bool:

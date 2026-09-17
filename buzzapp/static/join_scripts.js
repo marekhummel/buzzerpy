@@ -72,8 +72,11 @@ function on_stopwatch_action(action) {
 }
 
 function on_host_confirm_stopwatch_time(player, time) {
-    if (player == window.playername)
+    if (player == window.playername) {
+        stopwatch_stop();
+        stopwatch_set_elapsed(time);
         $('#btn_stopwatch_stop').text('Stopped at ' + time.toFixed(2) + ' secs');
+    }
 }
 
 function on_srv_kick_player(kicked) {

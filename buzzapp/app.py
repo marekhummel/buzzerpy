@@ -269,13 +269,16 @@ def host_start_stopwatch(data):
     action = data["action"]
 
     if action == "start":
-        stopwatch.start()
+        changed = stopwatch.start()
     elif action == "stop":
-        stopwatch.stop()
+        changed = stopwatch.stop()
     elif action == "reset":
-        stopwatch.reset()
+        changed = stopwatch.reset()
+    else:
+        return
 
-    socketio.emit("srv_stopwatch_action", action)
+    if changed:
+        socketio.emit("srv_stopwatch_action", action)
 
 
 @socketio.on("host_guess_column_change")
