@@ -159,6 +159,10 @@ class Stopwatch:
         if not self._running:
             self._elapsed_intervals = []
 
+    @property
+    def is_running(self) -> bool:
+        return self._running
+
     def elapsed(self) -> float | None:
         if len(self._elapsed_intervals) == 0 and not self._running:
             return None

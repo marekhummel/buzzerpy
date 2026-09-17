@@ -16,6 +16,8 @@ first_request = True
 
 game = BuzzGame()
 stopwatch = Stopwatch()
+host_sid: str | None = None
+player_sids: dict[str, str] = {}
 
 
 def send_game_update(host_only=False):
@@ -24,6 +26,22 @@ def send_game_update(host_only=False):
 
 def send_host_update():
     socketio.emit("srv_host_update", game.host.toJson() if game.host else None)
+
+
+def is_host() -> bool:
+    return socket_id() == host_sid
+
+
+def socket_id() -> str:
+    sid = getattr(request, "sid", None)
+    if not isinstance(sid, str):
+        raise TypeError("Socket.IO event received without a socket ID")
+    return sid
+
+
+def current_player() -> Player | None:
+    playername = player_sids.get(socket_id())
+    return game.get_player(playername) if playername else None
 
 
 # Force update of js files
@@ -116,19 +134,22 @@ def game_joined(data):
 
     player = Player(playername)
     game.add_player(player)
+    player_sids[socket_id()] = playername
     send_game_update()
 
 
 @socketio.on("player_game_left")
 def game_left(data):
-    playername = data["playername"]
-    if game.get_player(playername):
+    playername = player_sids.pop(socket_id(), None)
+    if playername and game.get_player(playername):
         game.remove_player(playername)
         send_game_update()
 
 
 @socketio.on("game_hosted")
 def game_hosted(data):
+    global host_sid
+
     print("game_hosted" + str(data))
     if game.has_host():
         emit("srv_abort_connect")
@@ -137,6 +158,7 @@ def game_hosted(data):
     hostname = data["hostname"]
     host = Host(hostname)
     game.set_host(host)
+    host_sid = socket_id()
 
     send_host_update()
     send_game_update()
@@ -144,11 +166,32 @@ def game_hosted(data):
 
 @socketio.on("game_host_left")
 def game_host_left():
-    assert game.has_host(), "non-existent host has left"
+    global host_sid
+
+    if not is_host():
+        return
 
     game.remove_host()
+    host_sid = None
     send_host_update()
     send_game_update()
+
+
+@socketio.on("disconnect")
+def disconnected():
+    global host_sid
+
+    if is_host():
+        game.remove_host()
+        host_sid = None
+        send_host_update()
+        send_game_update()
+        return
+
+    playername = player_sids.pop(socket_id(), None)
+    if playername and game.get_player(playername):
+        game.remove_player(playername)
+        send_game_update()
 
 
 # -- Host Actions --
@@ -156,15 +199,24 @@ def game_host_left():
 
 @socketio.on("host_kick_player")
 def host_kick_player(data):
+    if not is_host():
+        return
+
     playername = data["playername"]
     socketio.emit("srv_kick_player", playername)
     if game.get_player(playername):
         game.remove_player(playername)
+        for sid, name in list(player_sids.items()):
+            if name == playername:
+                del player_sids[sid]
         send_game_update()
 
 
 @socketio.on("host_change_roundmode")
 def host_change_roundmode(data):
+    if not is_host():
+        return
+
     gm = data["gamemode"]
     if gm == "buzzer":
         game.round_mode = RoundMode.Buzzer
@@ -177,6 +229,9 @@ def host_change_roundmode(data):
 
 @socketio.on("host_next_round")
 def host_next_round():
+    if not is_host():
+        return
+
     game.next_round()
     send_game_update()
     socketio.emit("srv_next_round")
@@ -184,6 +239,9 @@ def host_next_round():
 
 @socketio.on("host_change_score")
 def host_change_score(data):
+    if not is_host():
+        return
+
     player_name = data["player_name"]
     player = game.get_player(player_name)
     if not player:
@@ -205,6 +263,9 @@ def host_change_score(data):
 
 @socketio.on("host_stopwatch_action")
 def host_start_stopwatch(data):
+    if not is_host():
+        return
+
     action = data["action"]
 
     if action == "start":
@@ -219,6 +280,9 @@ def host_start_stopwatch(data):
 
 @socketio.on("host_guess_column_change")
 def host_guess_column_change(data):
+    if not is_host():
+        return
+
     action = data["action"]
 
     if action == "add":
@@ -234,11 +298,10 @@ def host_guess_column_change(data):
 
 @socketio.on("player_buzzer_click")
 def buzzer_clicked(data):
-    playername = data["playername"]
-    player = game.get_player(playername)
+    player = current_player()
 
     if not player:
-        raise LookupError("Player gone")
+        return
 
     player.buzz()
     game.round_in_progress = True
@@ -247,11 +310,10 @@ def buzzer_clicked(data):
 
 @socketio.on("player_guess_lockin")
 def player_guess_lockin(data):
-    playername = data["playername"]
-    player = game.get_player(playername)
+    player = current_player()
 
     if not player:
-        raise LookupError("Player gone")
+        return
 
     if not player.guessing_list:
         player.set_guesses(data["guesses"])
@@ -261,17 +323,25 @@ def player_guess_lockin(data):
 
 @socketio.on("player_stopwatch_stop")
 def player_stopwatch_stop(data):
-    playername = data["playername"]
-    player = game.get_player(playername)
+    player = current_player()
 
-    if not player:
-        raise LookupError("Player gone")
+    if (
+        not player
+        or game.round_mode != RoundMode.Stopwatch
+        or not stopwatch.is_running
+        or player.stopwatch_time is not None
+    ):
+        return
 
-    player.stop_stopwatch(stopwatch.elapsed())
+    elapsed = stopwatch.elapsed()
+    if elapsed is None:
+        return
+
+    player.stop_stopwatch(elapsed)
     game.round_in_progress = True
     send_game_update()
 
-    confirm_data = (playername, player.stopwatch_time)
+    confirm_data = (player.name, player.stopwatch_time)
     socketio.emit("srv_confirm_stopwatch_time", confirm_data)
 
 
