@@ -1,6 +1,5 @@
-from time import monotonic
-from typing import List, Optional
 from enum import IntEnum
+from time import monotonic
 
 
 class RoundMode(IntEnum):
@@ -9,7 +8,7 @@ class RoundMode(IntEnum):
     Stopwatch = 2
 
 
-class Host():
+class Host:
     name: str
 
     def __init__(self, name: str):
@@ -19,12 +18,12 @@ class Host():
         return self.__dict__
 
 
-class Player():
+class Player:
     name: str
     buzzer_has_buzzed: bool
-    buzzer_guesser_time: Optional[float]
-    stopwatch_time: Optional[float]
-    guessing_list: List[str]
+    buzzer_guesser_time: float | None
+    stopwatch_time: float | None
+    guessing_list: list[str]
     round_has_received_pts: bool
     round_correct_answer: bool
     correct_answers: int
@@ -48,11 +47,11 @@ class Player():
         self.buzzer_has_buzzed = True
         self.buzzer_guesser_time = monotonic()
 
-    def set_guesses(self, guesses: List[str]):
+    def set_guesses(self, guesses: list[str]):
         self.guessing_list = guesses
         self.buzzer_guesser_time = monotonic()
 
-    def stop_stopwatch(self, clock: Optional[float]):
+    def stop_stopwatch(self, clock: float | None):
         self.stopwatch_time = clock if clock else 0
 
     # ** Scores
@@ -87,9 +86,9 @@ class Player():
         return dict(self.__dict__, pts=self.get_points())
 
 
-class BuzzGame():
+class BuzzGame:
     host: Host
-    players: List[Player]
+    players: list[Player]
     round_mode: RoundMode
     round_in_progress: bool
     guessing_amount: int
@@ -113,7 +112,7 @@ class BuzzGame():
     def add_player(self, player: Player):
         self.players.append(player)
 
-    def get_player(self, name) -> Optional[Player]:
+    def get_player(self, name) -> Player | None:
         for p in self.players:
             if p.name == name:
                 return p
@@ -128,17 +127,19 @@ class BuzzGame():
             p.next_round()
 
     def toJson(self):
-        return {'host': self.host.toJson() if self.host else None,
-                'players': [p.toJson() for p in self.players],
-                'round_mode': self.round_mode,
-                'round_in_progress': self.round_in_progress,
-                'guessing_amount': self.guessing_amount}
+        return {
+            "host": self.host.toJson() if self.host else None,
+            "players": [p.toJson() for p in self.players],
+            "round_mode": self.round_mode,
+            "round_in_progress": self.round_in_progress,
+            "guessing_amount": self.guessing_amount,
+        }
 
 
-class Stopwatch():
+class Stopwatch:
     _running: bool
     _start: float
-    _elapsed_intervals: List[float]
+    _elapsed_intervals: list[float]
 
     def __init__(self):
         self._running = False
@@ -158,7 +159,7 @@ class Stopwatch():
         if not self._running:
             self._elapsed_intervals = []
 
-    def elapsed(self) -> Optional[float]:
+    def elapsed(self) -> float | None:
         if len(self._elapsed_intervals) == 0 and not self._running:
             return None
 

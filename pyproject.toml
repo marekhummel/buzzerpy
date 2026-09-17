@@ -1,0 +1,21 @@
+[project]
+name = "buzzer-py"
+version = "0.1.0"
+description = "A simple real-time quiz buzzer built with Flask and Socket.IO."
+readme = "README.md"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "eventlet",
+    "flask",
+    "flask-cors",
+    "flask-socketio",
+]
+
+[dependency-groups]
+dev = [
+    "mypy",
+    "ruff",
+]
+
+[tool.poetry]
+package-mode = false
