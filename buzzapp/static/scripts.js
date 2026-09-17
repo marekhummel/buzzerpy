@@ -40,28 +40,28 @@ function create_scoreboard(players, id, is_host) {
         var th_nr = document.createElement('th');
         th_nr.setAttribute('scope', 'row');
         if (i == 0 || pts_cmp_func(sorted_players[i-1], player) != 0)
-            th_nr.innerHTML = i+1;
+            th_nr.textContent = i + 1;
         row.appendChild(th_nr);
 
         var td_name = document.createElement('td');
-        td_name.innerHTML = player.name + (player.answer_streak >= 3 ? ' &#x1F525;' : '');
+        td_name.textContent = player.name + (player.answer_streak >= 3 ? ` ${String.fromCodePoint(0x1F525)}` : '');
         row.appendChild(td_name);
 
         var td_correct = document.createElement('td');
-        td_correct.innerHTML = player.correct_answers;
+        td_correct.textContent = player.correct_answers;
         row.appendChild(td_correct);
 
         var td_wrong = document.createElement('td');
-        td_wrong.innerHTML = player.wrong_answers;
+        td_wrong.textContent = player.wrong_answers;
         row.appendChild(td_wrong);
 
         var td_bonus = document.createElement('td');
-        td_bonus.innerHTML = player.bonus_points;
+        td_bonus.textContent = player.bonus_points;
         row.appendChild(td_bonus);
 
         var td_pts = document.createElement('td');
         td_pts.className = 'fw-bold';
-        td_pts.innerHTML = player.pts;
+        td_pts.textContent = player.pts;
         row.appendChild(td_pts);
 
         if (is_host) {

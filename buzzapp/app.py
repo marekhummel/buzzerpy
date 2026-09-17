@@ -196,13 +196,19 @@ def host_change_roundmode(data):
     if not is_host():
         return
 
-    gm = data["gamemode"]
+    if not isinstance(data, dict):
+        return
+
+    gm = data.get("gamemode")
     if gm == "buzzer":
         game.round_mode = RoundMode.Buzzer
     elif gm == "guessing":
         game.round_mode = RoundMode.Guessing
     elif gm == "stopwatch":
         game.round_mode = RoundMode.Stopwatch
+    else:
+        return
+
     send_game_update()
 
 
@@ -221,12 +227,15 @@ def host_change_score(data):
     if not is_host():
         return
 
-    player_name = data["player_name"]
+    if not isinstance(data, dict):
+        return
+
+    player_name = data.get("player_name")
     player = game.get_player(player_name)
     if not player:
         return
 
-    action = data["action"]
+    action = data.get("action")
     if action == "correct":
         player.correct_answer()
     elif action == "wrong":
@@ -234,8 +243,12 @@ def host_change_score(data):
     elif action == "skip":
         player.round_has_received_pts = True
     elif action == "bonus":
-        points = data["bonus_points"]
+        points = data.get("bonus_points")
+        if type(points) is not int:
+            return
         player.bonus_points += points
+    else:
+        return
 
     send_game_update()
 
@@ -245,7 +258,10 @@ def host_start_stopwatch(data):
     if not is_host():
         return
 
-    action = data["action"]
+    if not isinstance(data, dict):
+        return
+
+    action = data.get("action")
 
     if action == "start":
         changed = stopwatch.start()
@@ -265,12 +281,17 @@ def host_guess_column_change(data):
     if not is_host():
         return
 
-    action = data["action"]
+    if not isinstance(data, dict):
+        return
 
-    if action == "add":
+    action = data.get("action")
+
+    if action == "add" and game.guessing_amount < 10:
         game.guessing_amount += 1
-    elif action == "remove":
+    elif action == "remove" and game.guessing_amount > 1:
         game.guessing_amount -= 1
+    else:
+        return
 
     send_game_update()
 

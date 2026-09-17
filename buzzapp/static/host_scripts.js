@@ -28,7 +28,6 @@ function on_game_update(game, host_only) {
             replace_element('guess_overview_head', new_guess_overview_head);
 
             var new_guess_overview = create_guess_overview(game.players, game.guessing_amount, 'guess_overview');
-            document.getElementById('guess_overview').replaceWith(new_guess_overview);
             replace_element('guess_overview', new_guess_overview);
 
             document.getElementById('btn_guess_add_col').disabled = (game.round_in_progress || game.guessing_amount == 10);
@@ -36,7 +35,6 @@ function on_game_update(game, host_only) {
             break;
         case 2: // stopwatch
             var new_sw_overview = create_stopwatch_overview(game.players, 'stopwatch_overview');
-            document.getElementById('stopwatch_overview').replaceWith(new_sw_overview);
             replace_element('stopwatch_overview', new_sw_overview);
             break;
     }
@@ -88,7 +86,7 @@ function create_scorebuttons(players, id) {
         btn.classList.add('btn', btn_class);
         btn.type = 'button';
         btn.title = title;
-        btn.innerHTML = text;
+        btn.textContent = text;
         btn.disabled = disabled;
         btn.onclick = onclick;
         return btn;
@@ -200,16 +198,16 @@ function create_guess_overview(players, cols, id) {
 
         var td_rank = document.createElement('td');
         var rank = ranked_players.findIndex(p => p.name === player.name);
-        td_rank.innerHTML = (rank != -1) ? `${rank+1}.` : '';
+        td_rank.textContent = (rank != -1) ? `${rank+1}.` : '';
         row.appendChild(td_rank);
 
         var td_name = document.createElement('td');
-        td_name.innerHTML = player.name;
+        td_name.textContent = player.name;
         row.appendChild(td_name);
 
         for (j = 0; j < cols; j++) {
             var td_guess = document.createElement('td');
-            td_guess.innerHTML = player.guessing_list?.[j] ?? '';
+            td_guess.textContent = player.guessing_list?.[j] ?? '';
             row.appendChild(td_guess);
         }
 
@@ -239,7 +237,7 @@ function create_guess_overview_head(cols, id) {
     namecol.innerText = 'Name';
     tr.appendChild(namecol);
 
-    for (i = 0; i < cols; i++) {
+    for (let i = 0; i < cols; i++) {
         var guesscol = document.createElement('th');
         guesscol.setAttribute('scope', 'col');
         guesscol.innerText = 'Guess';
@@ -268,9 +266,9 @@ function create_stopwatch_overview(players, id) {
     }
 
     // Sort by stopwatch time
-    pressed_players = players.filter(p => p.stopwatch_time != null);
+    const pressed_players = players.filter(p => p.stopwatch_time != null);
     pressed_players.sort((a, b) => a.stopwatch_time - b.stopwatch_time);
-    other_players = players.filter(p => !pressed_players.includes(p));
+    const other_players = players.filter(p => !pressed_players.includes(p));
     players = pressed_players.concat(other_players);
 
     var tbody = document.createElement('tbody');
@@ -280,12 +278,12 @@ function create_stopwatch_overview(players, id) {
         var row = document.createElement('tr');
 
         var td_name = document.createElement('td');
-        td_name.innerHTML = players[i].name;
+        td_name.textContent = players[i].name;
         row.appendChild(td_name);
 
         var td_guess = document.createElement('td');
         if (players[i].stopwatch_time != null)
-            td_guess.innerHTML = players[i].stopwatch_time.toFixed(2) + ' secs';
+            td_guess.textContent = players[i].stopwatch_time.toFixed(2) + ' secs';
         row.appendChild(td_guess);
 
         tbody.appendChild(row);
@@ -310,10 +308,10 @@ function host_skip_player(player) {
 };
 
 function host_bonus_points() {
-    player = document.getElementById('player_dropdown').value;
+    const player = document.getElementById('player_dropdown').value;
     if (player === '') return;
 
-    bonus_points = parseInt(document.getElementById('bonus_points').value);
+    const bonus_points = parseInt(document.getElementById('bonus_points').value);
     socket.emit('host_change_score', { player_name: player, action: 'bonus', bonus_points: bonus_points });
 
     document.getElementById('player_dropdown').selectedIndex = 1;

@@ -27,7 +27,7 @@ function timeToString(time) {
 
 
 function print(txt) {
-    document.getElementById("stopwatch").innerHTML = txt;
+    document.getElementById("stopwatch").textContent = txt;
 }
 
 function stopwatch_start() {

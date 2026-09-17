@@ -45,7 +45,7 @@ function on_host_update(host) {
     }
     else {
         clearInterval(closing_timer);
-        $('#hostname').html(`Hosted by <b>&raquo;${host.name}&laquo;</b>`);
+        $('#hostname').text(`Hosted by \u00bb${host.name}\u00ab`);
     }
 }
 
@@ -92,7 +92,7 @@ function create_guessing_input(cols, id, old_inputs) {
     var div = document.createElement('div');
     div.setAttribute('id', id);
 
-    for (i = 0; i < cols; i++) {
+    for (let i = 0; i < cols; i++) {
         var input = document.createElement('input');
         input.classList.add('form-control', 'text-center', 'my-1');
         input.setAttribute('id', 'input_guess_' + i);
