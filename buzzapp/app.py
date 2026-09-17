@@ -138,14 +138,6 @@ def game_joined(data):
     send_game_update()
 
 
-@socketio.on("player_game_left")
-def game_left(data):
-    playername = player_sids.pop(socket_id(), None)
-    if playername and game.get_player(playername):
-        game.remove_player(playername)
-        send_game_update()
-
-
 @socketio.on("game_hosted")
 def game_hosted(data):
     global host_sid
@@ -160,19 +152,6 @@ def game_hosted(data):
     game.set_host(host)
     host_sid = socket_id()
 
-    send_host_update()
-    send_game_update()
-
-
-@socketio.on("game_host_left")
-def game_host_left():
-    global host_sid
-
-    if not is_host():
-        return
-
-    game.remove_host()
-    host_sid = None
     send_host_update()
     send_game_update()
 

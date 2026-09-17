@@ -45,11 +45,6 @@
             socket.on('srv_abort_connect', () => window.location.href = '/');   
             // socket.on('disconnect', () => window.location.href = '/');   
             
-            // Connect / disconnect
-            $(window).on('beforeunload', function () {
-                socket.emit('game_host_left');
-            });
-
             // Ping every 10min
             setInterval(ping, 10 * 60 * 1000);
 

@@ -59,11 +59,6 @@
                 }
             });
 
-            // Connect / disconnect
-            $(window).on('beforeunload', function () {
-                socket.emit('player_game_left', { playername: window.playername });
-            });
-
             socket.emit('player_game_joined', { playername: window.playername });
         });
 
